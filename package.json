@@ -1,0 +1,30 @@
+{
+  "name": "DVP-Voxbone",
+  "version": "1.0.0",
+  "description": "Voxbone API",
+  "main": "app.js",
+  "dependencies": {
+    "collections": "^1.2.3",
+    "config": "^1.15.0",
+    "DVP-Common": "git+https://github.com/DuoSoftware/DVP-Common",
+    "DVP-DBModels": "git+https://github.com/DuoSoftware/DVP-DBModels",
+    "enum": "^2.1.0",
+    "moment": "^2.10.6",
+    "node": "^0.0.0",
+    "redis": "^0.12.1",
+    "nodejs": "^0.0.0",
+    "request": "^2.60.0",
+    "restify": "^3.0.3",
+    "string-format": "^0.5.0",
+    "stringify": "^3.1.0",
+    "sequelize": "^3.5.1",
+    "xmldom": "^0.1.19",
+    "xpath": "^0.0.9"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Rajinda",
+  "license": "ISC"
+}

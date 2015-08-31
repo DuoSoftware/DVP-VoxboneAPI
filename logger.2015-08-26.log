@@ -1,0 +1,11 @@
+{"level":"info","message":"[DVP-voxbone.TrunkSetup] - [HTTP]  - Request received -  Data - undefined "}
+{"level":"info","message":"[DVP-voxbone.ListCountries] - [HTTP]  - Request received -  Data - {\"pageNumber\":\"1\",\"pageSize\":\"100\"} "}
+{"level":"error","message":"[DVP-voxbone.ListCountries] - [HTTP]  - Exception occurred -  Data - {\"pageNumber\":\"1\",\"pageSize\":\"100\"} "}
+{"level":"info","message":"[DVP-voxbone.ListCountries] - [HTTP]  - Request received -  Data - {\"pageNumber\":\"1\",\"pageSize\":\"100\"} "}
+{"level":"info","message":"[DVP-voxbone.ListCountries] - [HTTP]  - Request received -  Data - {\"pageNumber\":\"1\",\"pageSize\":\"100\"} "}
+{"level":"info","message":"[DVP-voxbone.ListCountries] - [HTTP]  - Request received -  Data - {\"pageNumber\":\"1\",\"pageSize\":\"100\"} "}
+{"level":"info","message":"[DVP-voxbone.ListCountries] - [HTTP]  - Request received -  Data - {\"pageNumber\":\"1\",\"pageSize\":\"100\"} "}
+{"level":"info","message":"[DVP-voxbone.ListCountries] - [HTTP]  - Request received -  Data - {\"pageNumber\":\"1\",\"pageSize\":\"100\"} "}
+{"level":"info","message":"[DVP-voxbone.ListCountries] - [HTTP]  - Request received -  Data - {\"pageNumber\":\"1\",\"pageSize\":\"100\"} "}
+{"level":"info","message":"[DVP-voxbone.ListCountries] - [HTTP]  - Request received -  Data - {\"pageNumber\":\"1\",\"pageSize\":\"100\"} "}
+{"level":"info","message":"[DVP-voxbone.ListCountries] - [HTTP]  - Request received -  Data - {\"pageNumber\":\"1\",\"pageSize\":\"100\"} "}
