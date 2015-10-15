@@ -16,7 +16,7 @@ var voxboneHandler = require('./VoxboneHandler');
 //-------------------------  Restify Server ------------------------- \\
 var RestServer = restify.createServer({
     name: "VoxboneApi",
-    version: version
+    version: '1.0.0'
 }, function (req, res) {
 
 });
