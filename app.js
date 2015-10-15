@@ -8,8 +8,8 @@ var config = require('config');
 var port = config.Host.port || 3000;
 var version = config.Host.version;
 
-var logger = require('DVP-Common/LogHandler/CommonLogHandler.js').logger;
-var messageFormatter = require('DVP-Common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
+var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
+var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 var trunkHandler = require('./TrunkHandler');
 var voxboneHandler = require('./VoxboneHandler');
 
