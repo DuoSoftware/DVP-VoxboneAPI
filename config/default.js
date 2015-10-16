@@ -14,7 +14,7 @@ module.exports = {
 
     "Host": {
         "domain": "0.0.0.0",
-        "port": 3333,
+        "port": 8832,
         "version": "1.0.0",
         "hostpath": "./config",
         "logfilepath": ""
