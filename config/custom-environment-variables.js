@@ -23,7 +23,7 @@ module.exports = {
         "trunkServiceHost": "SYS_PHONENUMBERSERVICE_HOST",
         "trunkServicePort": "SYS_PHONENUMBERSERVICE_PORT",
         "trunkServiceVersion": "SYS_PHONENUMBERSERVICE_VERSION",
-        "voxboneUrl":"SYS_VOXBONE_URL",
+        "voxboneUrl":"VOXBONE_URL",
     }
 
 };
