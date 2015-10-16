@@ -17,12 +17,12 @@ module.exports = {
     },
     "Services": {
 
-        "limitServiceHost": "SYS_LIMITSERVICE_HOST",
-        "limitServicePort": "SYS_LIMITSERVICE_PORT",
-        "limitServiceVersion": "SYS_LIMITSERVICE_VERSION",
-        "trunkServiceHost": "SYS_PHONENUMBERTRUNK_HOST",
-        "trunkServicePort": "SYS_PHONENUMBERTRUNKE_PORT",
-        "trunkServiceVersion": "SYS_PHONENUMBERTRUNK_VERSION",
+        "limitServiceHost": "SYS_LIMITHANDLER_HOST",
+        "limitServicePort": "SYS_LIMITHANDLER_PORT",
+        "limitServiceVersion": "SYS_LIMITHANDLER_VERSION",
+        "trunkServiceHost": "SYS_PHONENUMBERSERVICE_HOST",
+        "trunkServicePort": "SYS_PHONENUMBERSERVICE_PORT",
+        "trunkServiceVersion": "SYS_PHONENUMBERSERVICE_VERSION",
         "voxboneUrl":"SYS_VOXBONE_URL",
     }
 
