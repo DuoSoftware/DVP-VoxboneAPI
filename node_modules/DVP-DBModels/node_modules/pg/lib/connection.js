@@ -199,6 +199,11 @@ Connection.prototype.parse = function(query, more) {
 
   //normalize missing query names to allow for null
   query.name = query.name || '';
+  if (query.name.length > 63) {
+    console.error('Warning! Postgres only supports 63 characters for query names.');
+    console.error('You supplied', query.name, '(', query.name.length, ')');
+    console.error('This can cause conflicts and silent errors executing queries');
+  }
   //normalize null type array
   query.types = query.types || [];
   var len = query.types.length;
@@ -418,7 +423,7 @@ Connection.prototype.parseR = function(buffer, length) {
       return msg;
     }
   }
-  throw new Error("Unknown authenticatinOk message type" + util.inspect(msg));
+  throw new Error("Unknown authenticationOk message type" + util.inspect(msg));
 };
 
 Connection.prototype.parseS = function(buffer, length) {
