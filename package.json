@@ -4,6 +4,7 @@
   "description": "Voxbone API",
   "main": "app.js",
   "dependencies": {
+    "cors": "^2.7.1",
     "collections": "^3.0.0",
     "config": "^1.19.0",
     "dvp-common": "^0.0.15",
