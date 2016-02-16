@@ -8,13 +8,13 @@ var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 
-function AccountBalance(url, uname, pword, callBack) {
+function AccountBalance(url, apiKey, callBack) {
     var options = {
         method: 'GET',
         uri: url + '/ordering/accountbalance',
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
     request(options, function (error, response, body) {
@@ -36,13 +36,13 @@ function AccountBalance(url, uname, pword, callBack) {
     });
 }
 
-function CreateCart(url, uname, pword, callBack, customerReference, description) {
+function CreateCart(url, apiKey, callBack, customerReference, description) {
     var options = {
         method: 'PUT',
         uri: url + '/ordering/cart',
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         },
         body: '{"customerReference" : "' + customerReference + '","description" : "' + description + '"}'
     };
@@ -67,13 +67,13 @@ function CreateCart(url, uname, pword, callBack, customerReference, description)
 
 }
 
-function AddToCart(url, uname, pword, callBack, cartIdentifier) {
+function AddToCart(url, apiKey, callBack, cartIdentifier) {
     var options = {
         method: 'POST',
         uri: url + '/ordering/cart/' + cartIdentifier + '/product',
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         },
         body: '{"didCartItem" : {"didGroupId" : "8826", "quantity" : "1"}}'
     };
@@ -97,13 +97,13 @@ function AddToCart(url, uname, pword, callBack, cartIdentifier) {
     });
 }
 
-function ListCartCartIdentifier(url, uname, pword, callBack, pageNumber, pageSize, cartIdentifier) {
+function ListCartCartIdentifier(url, apiKey, callBack, pageNumber, pageSize, cartIdentifier) {
     var options = {
         method: 'GET',
         uri: url + '/ordering/cart?cartIdentifier' + cartIdentifier + 'pageNumber=' + pageNumber + '&pageSize=' + pageSize,
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         },
 
     };
@@ -127,13 +127,13 @@ function ListCartCartIdentifier(url, uname, pword, callBack, pageNumber, pageSiz
     });
 }
 
-function ListAllCart(url, uname, pword, callBack, pageNumber, pageSize) {
+function ListAllCart(url, apiKey, callBack, pageNumber, pageSize) {
     var options = {
         method: 'GET',
         uri: url + '/ordering/cart?pageNumber=' + pageNumber + '&pageSize=' + pageSize,
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         },
 
     };
@@ -157,13 +157,13 @@ function ListAllCart(url, uname, pword, callBack, pageNumber, pageSize) {
     });
 }
 
-function RemoveFromCart(url, uname, pword, callBack, cartIdentifier, orderProductId, quantity) {
+function RemoveFromCart(url, apiKey, callBack, cartIdentifier, orderProductId, quantity) {
     var options = {
         method: 'POST',
         uri: url + '/ordering/cart/' + cartIdentifier + '/product/' + orderProductId,
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         },
         body: '{"cartIdentifier" : "' + cartIdentifier + '", "orderProductId" : "' + orderProductId + '", "quantity" : "' + quantity + '"}'
     };
@@ -187,13 +187,13 @@ function RemoveFromCart(url, uname, pword, callBack, cartIdentifier, orderProduc
     });
 }
 
-function DeleteCart(url, uname, pword, callBack, cartIdentifier) {
+function DeleteCart(url, apiKey, callBack, cartIdentifier) {
     var options = {
         method: 'DELETE',
         uri: url + '/ordering/cart/' + cartIdentifier,
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
 
@@ -216,13 +216,13 @@ function DeleteCart(url, uname, pword, callBack, cartIdentifier) {
     });
 }
 
-function CheckoutCart(url, uname, pword, callBack, cartIdentifier) {
+function CheckoutCart(url, apiKey, callBack, cartIdentifier) {
     var options = {
         method: 'GET',
         uri: url + '/ordering/cart/' + cartIdentifier + '/checkout?cartIdentifier='+cartIdentifier, //Query string data
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
 
@@ -245,13 +245,13 @@ function CheckoutCart(url, uname, pword, callBack, cartIdentifier) {
     });
 }
 
-function ListOrder(url, uname, pword, callBack, pageNo, size) {
+function ListOrder(url, apiKey, callBack, pageNo, size) {
     var options = {
         method: 'GET',
         uri: url + '/ordering/order?pageNumber='+pageNo+'& pageSize='+ size, //Query string data
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
 
@@ -274,13 +274,13 @@ function ListOrder(url, uname, pword, callBack, pageNo, size) {
     });
 }
 
-function CancelDIDs(url, uname, pword, callBack, didIds) {
+function CancelDIDs(url, apiKey, callBack, didIds) {
     var options = {
         method: 'POST',
         uri: url + '/ordering/cancel',
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         },
         body: '{"didIds" : ' + didIds + '}'
     };

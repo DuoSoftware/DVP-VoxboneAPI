@@ -8,10 +8,13 @@ module.exports = {
         "Database": "dvpdb"
     },
     "Redis": {
-        "ip": "192.168.3.200",
+        "ip": "45.55.142.207",
         "port": 6379
     },
-
+    "Security": {
+        "ip": "45.55.142.207",
+        "port": 6379
+    },
     "Host": {
         "domain": "0.0.0.0",
         "port": 8832,
@@ -21,7 +24,6 @@ module.exports = {
     },
 
     "Services": {
-
         "limitServiceHost": "192.168.0.54",
         "limitServicePort": 8084,
         "limitServiceVersion": "6.0",

@@ -19,7 +19,7 @@ var DidTypes = new Enum({
     'SPECIAL': 6
 });
 
-function ListCountry(url, uname, pword, callBack, countryCodeA3, pageNumber, pageSize) {
+function ListCountry(url, apiKey, callBack, countryCodeA3, pageNumber, pageSize) {
     var qs="?countryCodeA3="+countryCodeA3+"&pageNumber="+pageNumber+"&pageSize="+pageSize; //Query string data
     var options = {
         method: 'GET',
@@ -27,7 +27,7 @@ function ListCountry(url, uname, pword, callBack, countryCodeA3, pageNumber, pag
 
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
     request(options, function (error, response, body) {
@@ -50,7 +50,7 @@ function ListCountry(url, uname, pword, callBack, countryCodeA3, pageNumber, pag
     });
 }
 
-function ListCountries(url, uname, pword, callBack, pageNumber, pageSize) {
+function ListCountries(url, apiKey, callBack, pageNumber, pageSize) {
 
     var qs = "?pageNumber="+pageNumber+"&pageSize="+pageSize; //Query string data
     var options = {
@@ -58,7 +58,7 @@ function ListCountries(url, uname, pword, callBack, pageNumber, pageSize) {
         uri: url + '/inventory/country'+qs,
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
     request(options, function (error, response, body) {
@@ -82,7 +82,7 @@ function ListCountries(url, uname, pword, callBack, pageNumber, pageSize) {
 }
 
 
-function ListCountriesByDidType(url, uname, pword, callBack, countryCodeA3, didType, pageNumber, pageSize) {
+function ListCountriesByDidType(url, apiKey, callBack, countryCodeA3, didType, pageNumber, pageSize) {
 
     var qs = "?pageNumber="+pageNumber+"&pageSize="+pageSize+"&countryCodeA3="+countryCodeA3+"DidType="+DidTypes.getValue(didType);
     var options = {
@@ -90,7 +90,7 @@ function ListCountriesByDidType(url, uname, pword, callBack, countryCodeA3, didT
         uri: url + '/inventory/country'+qs,
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
     request(options, function (error, response, body) {
@@ -112,14 +112,14 @@ function ListCountriesByDidType(url, uname, pword, callBack, countryCodeA3, didT
     });
 }
 
-function ListRestriction(url, uname, pword, callBack, countryCodeA3) {
+function ListRestriction(url, apiKey, callBack, countryCodeA3) {
 
     var options = {
         method: 'GET',
         uri: url + '/inventory/country/' + countryCodeA3 + '/restriction',
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
     request(options, function (error, response, body) {
@@ -141,14 +141,14 @@ function ListRestriction(url, uname, pword, callBack, countryCodeA3) {
     });
 }
 
-function ListState(url, uname, pword, callBack, countryCodeA3) {
+function ListState(url, apiKey, callBack, countryCodeA3) {
 
     var options = {
         method: 'GET',
         uri: url + '/inventory/country/' + countryCodeA3 + '/state',
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
     request(options, function (error, response, body) {
@@ -170,14 +170,14 @@ function ListState(url, uname, pword, callBack, countryCodeA3) {
     });
 }
 
-function ListCreditPackage(url, uname, pword, callBack) {
+function ListCreditPackage(url, apiKey, callBack) {
 
     var options = {
         method: 'GET',
         uri: url + '/cdrs/inventory/creditpackage',
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
     request(options, function (error, response, body) {
@@ -200,14 +200,14 @@ function ListCreditPackage(url, uname, pword, callBack) {
 }
 
 
-function ListDID(url, uname, pword, callBack, countryCodeA3, pageNumber, pageSize) {
+function ListDID(url, apiKey, callBack, countryCodeA3, pageNumber, pageSize) {
 
     var options = {
         method: 'GET',
         uri: url + '/inventory/did?needAddressLink=false&countryCodeA3='+countryCodeA3+'&pageNumber='+pageNumber+'&pageSize='+pageSize, //Query string data
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
     request(options, function (error, response, body) {
@@ -229,7 +229,7 @@ function ListDID(url, uname, pword, callBack, countryCodeA3, pageNumber, pageSiz
     });
 }
 
-function ListDIDGroup(url, uname, pword, callBack, countryCodeA3, pageNumber, pageSize) {
+function ListDIDGroup(url, apiKey, callBack, countryCodeA3, pageNumber, pageSize) {
 
     //
     var qs= "?pageNumber="+pageNumber+"&pageSize="+pageSize+"&countryCodeA3="+countryCodeA3;
@@ -238,7 +238,7 @@ function ListDIDGroup(url, uname, pword, callBack, countryCodeA3, pageNumber, pa
         uri: url + '/inventory/didgroup'+qs,
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
     request(options, function (error, response, body) {
@@ -260,14 +260,14 @@ function ListDIDGroup(url, uname, pword, callBack, countryCodeA3, pageNumber, pa
     });
 }
 
-function ListDIDGroupBydidType(url, uname, pword, callBack, countryCodeA3, didType, pageNumber, pageSize) {
+function ListDIDGroupBydidType(url, apiKey, callBack, countryCodeA3, didType, pageNumber, pageSize) {
 
     var options = {
         method: 'GET',
         uri: url + '/inventory/didgroup?pageNumber='+pageNumber+'&pageSize='+pageSize+'&countryCodeA3='+countryCodeA3+'&didType='+DidTypes.getKey(didType),//Query string data
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
     request(options, function (error, response, body) {
@@ -289,14 +289,14 @@ function ListDIDGroupBydidType(url, uname, pword, callBack, countryCodeA3, didTy
     });
 }
 
-function ListFeature(url, uname, pword, callBack) {
+function ListFeature(url, apiKey, callBack) {
 
     var options = {
         method: 'GET',
         uri: url + '/inventory/feature',
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
     request(options, function (error, response, body) {
@@ -318,14 +318,14 @@ function ListFeature(url, uname, pword, callBack) {
     });
 }
 
-function ListTrunk(url, uname, pword, callBack) {
+function ListTrunk(url, apiKey, callBack) {
 
     var options = {
         method: 'GET',
         uri: url + '/inventory/trunk',
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
     request(options, function (error, response, body) {
@@ -347,14 +347,14 @@ function ListTrunk(url, uname, pword, callBack) {
     });
 }
 
-function ListZone(url, uname, pword, callBack) {
+function ListZone(url, apiKey, callBack) {
 
     var options = {
         method: 'GET',
         uri: url + '/inventory/zone',
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
     request(options, function (error, response, body) {

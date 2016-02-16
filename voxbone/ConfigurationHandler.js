@@ -8,13 +8,13 @@ var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 
-function ApplyConfiguration(url, uname, pword, callBack, data) {
+function ApplyConfiguration(url, apiKey, callBack, data) {
     var options = {
         method: 'POST',
         uri: url + '/configuration/configuration',
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         },
         body: "'" + data + "'"
     };
@@ -40,13 +40,13 @@ function ApplyConfiguration(url, uname, pword, callBack, data) {
     });
 }
 
-function ListCapacityGroup(url, uname, pword, callBack, pageNo, size) {
+function ListCapacityGroup(url, apiKey, callBack, pageNo, size) {
     var options = {
         method: 'GET',
         uri: url + '/configuration/capacitygroup?pageNumber='+pageNo+'&pageSize='+ size, //Query string data
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         }
     };
 
@@ -72,13 +72,13 @@ function ListCapacityGroup(url, uname, pword, callBack, pageNo, size) {
     });
 }
 
-function SaveCapacityGroup(url, uname, pword, callBack, capacityGroupId, maximumCapacity, description) {
+function SaveCapacityGroup(url, apiKey, callBack, capacityGroupId, maximumCapacity, description) {
     var options = {
         method: 'PUT',
         uri: url + '/configuration/capacitygroup',
         headers: {'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         },
         body: '{"capacityGroup" : {"capacityGroupId" : "' + capacityGroupId + '","maximumCapacity" : "' + maximumCapacity + '","description" : "' + description + '"}}'
     };

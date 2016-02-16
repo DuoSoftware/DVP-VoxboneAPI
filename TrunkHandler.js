@@ -15,7 +15,7 @@ var limitUrl = format('http://{0}:{1}/DVP/API/{2}/', config.Services.limitServic
 var trunkUrl = format("http://{0}:{1}/DVP/API/{2}/", config.Services.trunkServiceHost, config.Services.trunkServicePort, config.Services.trunkServiceVersion);
 
 
-function TrunkSetup(uname, pword, callBack, enable, faxType, ipUrl, trunkCode, trunkName, lbId, operatorCode, operatorName) {
+function TrunkSetup(apiKey, callBack, enable, faxType, ipUrl, trunkCode, trunkName, lbId, operatorCode, operatorName) {
 
     var TrunkId = -1;
     var data = '{ "Enable":"' + enable + '","FaxType":"' + faxType + '","IpUrl":"' + ipUrl + '","ObjCategory":"Voxbone","ObjClass":"Voxbone","ObjType":"Voxbone","TrunkCode":"trunkCode","TrunkName":"trunkName"}';
@@ -25,7 +25,7 @@ function TrunkSetup(uname, pword, callBack, enable, faxType, ipUrl, trunkCode, t
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         },
         body: data
     };
@@ -50,7 +50,7 @@ function TrunkSetup(uname, pword, callBack, enable, faxType, ipUrl, trunkCode, t
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+                    'Authorization': apiKey
                 },
             };
             request(options, function (error, response, body) {
@@ -74,7 +74,7 @@ function TrunkSetup(uname, pword, callBack, enable, faxType, ipUrl, trunkCode, t
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+                            'Authorization': apiKey
                         },
                         body: data
                     };
@@ -101,7 +101,7 @@ function TrunkSetup(uname, pword, callBack, enable, faxType, ipUrl, trunkCode, t
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'Accept': 'application/json',
-                                    'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+                                    'Authorization': apiKey
                                 },
 
                             };
@@ -124,7 +124,7 @@ function TrunkSetup(uname, pword, callBack, enable, faxType, ipUrl, trunkCode, t
     });
 }
 
-function SetLimitToNumber(uname, pword, limitDescription, maxCount, phoneNumber, trunkId, callBack) {
+function SetLimitToNumber(apiKey, limitDescription, maxCount, phoneNumber, trunkId, callBack) {
 
     var data = '{"LimitDescription":"' + limitDescription + '","MaxCount":' + maxCount + ',"Enable":true}';
     var options = {
@@ -133,7 +133,7 @@ function SetLimitToNumber(uname, pword, limitDescription, maxCount, phoneNumber,
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         },
         body: data
     };
@@ -149,7 +149,7 @@ function SetLimitToNumber(uname, pword, limitDescription, maxCount, phoneNumber,
                 var jsonString = messageFormatter.FormatMessage(new error(jsonResp), "EXCEPTION", false, response);
                 callBack.end(jsonString);return;
             }
-            var limitId = jsonResp.Result
+            var limitId = jsonResp.Result;
 
             var data = '{"PhoneNumber":' + phoneNumber + ',"Enable":true,"ObjClass":"CALL","ObjCategory":"INBOUND","TrunkId":' + trunkId + '}';
             var options = {
@@ -158,7 +158,7 @@ function SetLimitToNumber(uname, pword, limitDescription, maxCount, phoneNumber,
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+                    'Authorization': apiKey
                 },
                 body: data
             };
@@ -181,7 +181,7 @@ function SetLimitToNumber(uname, pword, limitDescription, maxCount, phoneNumber,
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+                            'Authorization': apiKey
                         },
 
                     };

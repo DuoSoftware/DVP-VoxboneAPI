@@ -16,6 +16,7 @@
     "nodejs": "^0.0.0",
     "request": "^2.69.0",
     "restify": "^4.0.3",
+    "restify-jwt": "^0.4.0",
     "string-format": "^0.5.0",
     "stringify": "^3.2.0",
     "sequelize": "^3.19.1",
@@ -30,5 +31,16 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Rajinda",
-  "license": "ISC"
+  "license": "ISC",
+
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DuoSoftware/DVP-VoxboneAPI.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DuoSoftware/DVP-VoxboneAPI/issues"
+  },
+  "homepage": "https://github.com/DuoSoftware/DVP-VoxboneAPI"
 }

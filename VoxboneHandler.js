@@ -12,19 +12,19 @@ var dom = require('xmldom').DOMParser;
 
 var voxboneUrl = config.Services.voxboneUrl;
 
-function ListCountries(uname, pword, callBack, pageNumber, pageSize) {
-    inventoryHandler.ListCountries(voxboneUrl, uname, pword, callBack, pageNumber, pageSize)
+function ListCountries(apiKey, callBack, pageNumber, pageSize) {
+    inventoryHandler.ListCountries(voxboneUrl, apiKey, callBack, pageNumber, pageSize)
 }
 
-function ListDIDGroup(uname, pword, callBack, countryCodeA3, pageNumber, pageSize) {
-    inventoryHandler.ListDIDGroup(voxboneUrl, uname, pword, callBack, countryCodeA3, pageNumber, pageSize);
+function ListDIDGroup(apiKey, callBack, countryCodeA3, pageNumber, pageSize) {
+    inventoryHandler.ListDIDGroup(voxboneUrl, apiKey, callBack, countryCodeA3, pageNumber, pageSize);
 }
 
-function ListDIDGroupByDidType(uname, pword, callBack, countryCodeA3, didType, pageNumber, pageSize) {
-    inventoryHandler.ListDIDGroupBydidType(voxboneUrl, uname, pword, callBack, countryCodeA3, didType, pageNumber, pageSize);
+function ListDIDGroupByDidType(apiKey, callBack, countryCodeA3, didType, pageNumber, pageSize) {
+    inventoryHandler.ListDIDGroupBydidType(voxboneUrl, apiKey, callBack, countryCodeA3, didType, pageNumber, pageSize);
 }
 
-function OrderDids(uname, pword, callBack, customerReference, description, didGroupId, quantity, countryCodeA3) {
+function OrderDids(apiKey, callBack, customerReference, description, didGroupId, quantity, countryCodeA3) {
 
     var jsonString = "";
     var jsonResp="";
@@ -34,7 +34,7 @@ function OrderDids(uname, pword, callBack, customerReference, description, didGr
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+            'Authorization': apiKey
         },
         body: '{"customerReference" : "' + customerReference + '","description" : "' + description + '"}'
     };
@@ -63,7 +63,7 @@ function OrderDids(uname, pword, callBack, customerReference, description, didGr
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+                    'Authorization': apiKey
                 },
                 body: '{"didCartItem" : {"didGroupId" : "' + didGroupId + '", "quantity" : "' + quantity + '"}}'
             };
@@ -90,7 +90,7 @@ function OrderDids(uname, pword, callBack, customerReference, description, didGr
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+                            'Authorization': apiKey
                         }
                     };
 
@@ -115,7 +115,7 @@ function OrderDids(uname, pword, callBack, customerReference, description, didGr
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'Accept': 'application/json',
-                                    'Authorization': 'Basic ' + new Buffer(uname + ':' + pword).toString('base64')
+                                    'Authorization': apiKey
                                 }
                             };
                             request(options, function (error, response, body) {
