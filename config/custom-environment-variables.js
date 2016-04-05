@@ -24,6 +24,13 @@ module.exports = {
         "trunkServicePort": "SYS_PHONENUMBERSERVICE_PORT",
         "trunkServiceVersion": "SYS_PHONENUMBERSERVICE_VERSION",
         "voxboneUrl":"VOXBONE_URL",
+    },"Security":
+    {
+        "ip": "SYS_REDIS_HOST",
+        "port": "SYS_REDIS_PORT",
+        "user": "SYS_REDIS_USER",
+        "password": "SYS_REDIS_PASSWORD"
+
     }
 
 };

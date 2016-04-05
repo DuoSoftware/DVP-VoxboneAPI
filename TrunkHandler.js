@@ -46,7 +46,7 @@ function TrunkSetup(apiKey, callBack, enable, faxType, ipUrl, trunkCode, trunkNa
             TrunkId = jsonResp.Result;
             var options = {
                 method: 'POST',
-                uri: trunkUrl + '/PhoneNumberTrunkApi/Trunk/' + TrunkId + '/SetLoadBalancer/' + lbId,
+                uri: trunkUrl + '/PhoneNumberTrunkApi/Trunk/' + TrunkId + '/SetCloud/' + lbId,
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
