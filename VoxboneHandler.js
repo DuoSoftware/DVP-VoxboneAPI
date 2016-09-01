@@ -28,6 +28,7 @@ function OrderDids(apiKey, callBack, customerReference, description, didGroupId,
 
     var jsonString = "";
     var jsonResp="";
+
     var options = {
         method: 'PUT',
         uri: voxboneUrl + '/ordering/cart',
