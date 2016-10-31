@@ -1,30 +1,31 @@
 module.exports = {
     "DB": {
-        "Type": "postgres",
-        "User": "duouser",
-        "Password": "DuoS123",
-        "Port": 5432,
-        "Host": "localhost",
-        "Database": "dvpdb"
+        "Type":"postgres",
+        "User":"duo",
+        "Password":"DuoS123",
+        "Port":5432,
+        "Host":"104.236.231.11",//104.131.105.222
+        "Database":"duo" //duo
     },
     "Redis":
     {
         "ip": "45.55.142.207",
         "port": 6389,
-        "password":"DuoS123"
-
+        "password":"DuoS123",
+        "redisdb":8,
+        "ardsData":6
     },
     "Security":
     {
-        "ip" : "45.55.142.207",
+        "ip": "45.55.142.207",
         "port": 6389,
-        "user": "duo",
+        "user": "DuoS123",
         "password": "DuoS123"
     },
     "Host": {
         "domain": "0.0.0.0",
         "port": 8832,
-        "version": "1.0.0",
+        "version": "1.0.0.0",
         "hostpath": "./config",
         "logfilepath": ""
     },
@@ -40,4 +41,3 @@ module.exports = {
 
     }
 };
-

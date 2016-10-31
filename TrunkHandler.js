@@ -15,7 +15,7 @@ var limitUrl = format('http://{0}:{1}/DVP/API/{2}/', config.Services.limitServic
 var trunkUrl = format("http://{0}:{1}/DVP/API/{2}/", config.Services.trunkServiceHost, config.Services.trunkServicePort, config.Services.trunkServiceVersion);
 
 
-function TrunkSetup(apiKey, callBack, enable, faxType, ipUrl, trunkCode, trunkName, lbId, operatorCode, operatorName) {
+function TrunkSetup(apiKey, callBack, enable, faxType, ipUrl, trunkCode, trunkName, lbId, operatorCode, operatorName) {// if no outbound set to null
 
     var TrunkId = -1;
     var data = '{ "Enable":"' + enable + '","FaxType":"' + faxType + '","IpUrl":"' + ipUrl + '","ObjCategory":"Voxbone","ObjClass":"Voxbone","ObjType":"Voxbone","TrunkCode":"trunkCode","TrunkName":"trunkName"}';

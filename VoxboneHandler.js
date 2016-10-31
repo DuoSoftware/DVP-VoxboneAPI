@@ -59,7 +59,6 @@ function OrderDids(apiKey, callBack, customerReference, description, didGroupId,
             var cartIdentifier = jsonResp.cart.cartIdentifier;
             var options = {
                 method: 'POST',
-
                 uri: voxboneUrl + '/ordering/cart/' + cartIdentifier + '/product',
                 headers: {
                     'Content-Type': 'application/json',
