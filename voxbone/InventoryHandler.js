@@ -81,7 +81,6 @@ function ListCountries(url, apiKey, callBack, pageNumber, pageSize) {
     });
 }
 
-
 function ListCountriesByDidType(url, apiKey, callBack, countryCodeA3, didType, pageNumber, pageSize) {
 
     var qs = "?pageNumber="+pageNumber+"&pageSize="+pageSize+"&countryCodeA3="+countryCodeA3+"DidType="+DidTypes.getValue(didType);
@@ -198,7 +197,6 @@ function ListCreditPackage(url, apiKey, callBack) {
         }
     });
 }
-
 
 function ListDID(url, apiKey, callBack, countryCodeA3, pageNumber, pageSize) {
 

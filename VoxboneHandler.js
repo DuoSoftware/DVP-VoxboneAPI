@@ -6,6 +6,7 @@ var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJ
 var request = require('request');
 var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var inventoryHandler = require('./voxbone/InventoryHandler');
+var orderHandler = require('./voxbone/OrderHandler');
 var config = require('config');
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
@@ -24,7 +25,7 @@ function ListDIDGroupByDidType(apiKey, callBack, countryCodeA3, didType, pageNum
     inventoryHandler.ListDIDGroupBydidType(voxboneUrl, apiKey, callBack, countryCodeA3, didType, pageNumber, pageSize);
 }
 
-function OrderDids(apiKey, callBack, customerReference, description, didGroupId, quantity, countryCodeA3) {
+function OrderDids(req,apiKey, callBack, customerReference, description, didGroupId, quantity, countryCodeA3,channelCount) {
 
     var jsonString = "";
     var jsonResp="";
@@ -109,36 +110,86 @@ function OrderDids(apiKey, callBack, customerReference, description, didGroupId,
                                 return;
                             }
 
-                            var options = {
-                                method: 'GET',
-                                uri: voxboneUrl + '/inventory/did?needAddressLink=false&countryCodeA3=' + countryCodeA3 + '&pageNumber=0&pageSize=100', //Query string data
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'Authorization': apiKey
-                                }
-                            };
-                            request(options, function (error, response, body) {
-                                if (error) {
-                                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                                    logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - [%s] - Error.', response, body, error);
-                                    callBack.end(jsonString);
-                                } else {
-                                    logger.info('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - - [%s]', response, body);
-                                    if (response.statusCode != 200) {
-                                        jsonResp = JSON.parse(body);
-                                        jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
-                                        callBack.end(jsonString);
-                                        return;
+                            var oderInfo = JSON.parse(body);
+                            if(oderInfo.status === "SUCCESS"){
+                                var options = {
+                                    method: 'GET',
+                                    uri: voxboneUrl + '/inventory/did?needAddressLink=false&orderId=' + cartIdentifier + '&countryCodeA3=' + countryCodeA3 + '&pageNumber=0&pageSize=100', //Query string data
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'Authorization': apiKey
                                     }
-                                    jsonString = messageFormatter.FormatMessage(undefined, "SUCCESS", true, body);
-                                    callBack.end(jsonString);
-                                }
-                            });
+                                };
+                                request(options, function (error, response, body) {
+                                    if (error) {
+                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                        logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - [%s] - Error.', response, body, error);
+                                        callBack.end(jsonString);
+                                    } else {
+                                        logger.info('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - - [%s]', response, body);
+                                        if (response.statusCode != 200) {
+                                            jsonResp = JSON.parse(body);
+                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                                            callBack.end(jsonString);
+                                            return;
+                                        }
+/*
+
+                                        var oderInfo = JSON.parse(body);
+                                        if(oderInfo.status === "SUCCESS"){
+                                            var channelData ={
+                                                VoxOderId : cartIdentifier,
+                                                ChannelCount : channelCount,
+                                                Dids : channelData.Dids ,
+                                                OtherJsonData: oderInfo
+                                            };
+                                            var companyData = {
+                                                TenantId : req.user.tenant,
+                                                CompanyId : req.user.company
+                                            };
+                                            SaveOder(channelData,companyData);
+                                        }*/
+
+
+
+                                        jsonString = messageFormatter.FormatMessage(undefined, "SUCCESS", true, body);
+                                        callBack.end(jsonString);
+                                    }
+                                });
+                            }
+                            else{
+
+                                var oderInfo = JSON.parse(body);
+                                var channelData ={
+                                    VoxOderId : cartIdentifier,
+                                    ChannelCount : channelCount,
+                                    OtherJsonData: oderInfo
+                                };
+                                var companyData = {
+                                    TenantId : req.user.tenant,
+                                    CompanyId : req.user.company
+                                };
+                                SaveOder(channelData,companyData);
+
+                                jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "Please Contact System Administrator to Continue", false, body);
+                                callBack.end(jsonString);
+                                return;
+                            }
+
                         }
                     });
                 }
             });
+        }
+    });
+}
+
+function SaveOder(channelData,companyData){
+    orderHandler.CreateOder(channelData,companyData, function(err,data){
+        if(err){
+            var jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, data);
+            logger.debug('CreateOder - Fail To Save Oder Data - [%s] . channelData - [%s] , companyData - [%s]',jsonString, JSON.stringify(channelData),JSON.stringify(companyData) );
         }
     });
 }

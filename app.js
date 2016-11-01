@@ -11,6 +11,7 @@ var version = config.Host.version;
 var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 var trunkHandler = require('./TrunkHandler');
+var inventoryHandler = require('./voxbone/InventoryHandler');
 var voxboneHandler = require('./VoxboneHandler');
 
 //-------------------------  Restify Server ------------------------- \\
@@ -101,6 +102,41 @@ RestServer.post('/DVP/API/' + version + '/voxbone/trunk/:trunkid/limitnumber', a
     return next();
 });
 
+RestServer.get('/DVP/API/' + version + '/voxbone/inventory/trunk', authorization({
+    resource: "voxbone",
+    action: "write"
+}), function (req, res, next) {
+    try {
+        logger.info('[DVP-voxbone.TrunkSetup] - [HTTP]  - Request received -  Data - %s -%s', JSON.stringify(req.body), JSON.stringify(req.params));
+
+        /* var uname;
+         var pword;
+         try {
+         var b64string = req.header('Authorization');
+         b64string = b64string.replace("Basic ", "");
+         var auth = new Buffer(b64string, 'base64').toString('ascii');
+         var authInfo = auth.split(":");
+         uname = authInfo[0];
+         pword = authInfo[1];
+         } catch (ex) {
+         logger.error('[DVP-voxbone.SetLimitToNumber] - [HTTP]  - Exception occurred -  Data - %s ', "authorization", ex);
+         var jsonString = messageFormatter.FormatMessage(new Error("Authorization"), "EXCEPTION", false, "Invalid authorization info");
+         res.end(jsonString);
+         return;
+         }
+         */
+        var apiKey = req.header('authorization');
+        var voxboneUrl = config.Services.voxboneUrl;
+        inventoryHandler.ListTrunk(voxboneUrl, apiKey,res);
+    }
+    catch (ex) {
+        logger.error('[DVP-voxbone.SetLimitToNumber] - [HTTP]  - Exception occurred -  Data - %s ', JSON.stringify(req.body), ex);
+        var jsonString = messageFormatter.FormatMessage(ex, "EXCEPTION", false, undefined);
+        res.end(jsonString);
+    }
+    return next();
+});
+
 RestServer.get('/DVP/API/' + version + '/voxbone/inventory/listcountries/:pageNumber/:pageSize', authorization({
     resource: "voxbone",
     action: "read"
@@ -172,7 +208,7 @@ RestServer.post('/DVP/API/' + version + '/voxbone/order/OrderDids', authorizatio
 
         var apiKey = req.header('api_key');
         var vox = req.params;
-        voxboneHandler.OrderDids(apiKey, res, vox.customerReference, vox.description, vox.didGroupId, vox.quantity, vox.countryCodeA3);
+        voxboneHandler.OrderDids(req,apiKey, res, vox.customerReference, vox.description, vox.didGroupId, vox.quantity, vox.countryCodeA3,vox.ChannelCount);
 
     }
     catch (ex) {
