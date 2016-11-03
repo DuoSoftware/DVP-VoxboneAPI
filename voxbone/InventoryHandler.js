@@ -374,6 +374,35 @@ function ListZone(url, apiKey, callBack) {
     });
 }
 
+function ListDIDGroupByDidTypeAndState(url, apiKey, callBack, countryCodeA3, didType, state, pageNumber, pageSize) {
+
+    var options = {
+        method: 'GET',
+        uri: url + '/inventory/didgroup?pageNumber='+pageNumber+'&pageSize='+pageSize+'&countryCodeA3='+countryCodeA3+'&stateId='+state+'&didType='+DidTypes.getKey(didType),//Query string data
+        headers: {'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': apiKey
+        }
+    };
+    request(options, function (error, response, body) {
+        if (error) {
+            var jsonString = messageFormatter.FormatMessage(error, "EXCEPTION", false, undefined);
+            logger.error('[DVP-Voxbone.ListDIDGroup] - [%s] - [%s] - Error.', response, body, error);
+            callBack.end(jsonString);
+        } else {
+            logger.info('[DVP-Voxbone.ListDIDGroup] - [%s] - - [%s]', response, body);
+            if (response.statusCode != 200) {
+                var jsonResp = JSON.parse(body);
+                var jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                callBack.end(jsonString);
+            } else {
+                var jsonString = messageFormatter.FormatMessage(undefined, "SUCCESS", true, body);
+                callBack.end(jsonString);
+            }
+        }
+    });
+}
+
 module.exports.ListCountry = ListCountry;
 module.exports.ListCountries = ListCountries;
 module.exports.ListCountriesByDidType = ListCountriesByDidType;
@@ -386,3 +415,4 @@ module.exports.ListDIDGroupBydidType = ListDIDGroupBydidType;
 module.exports.ListFeature = ListFeature;
 module.exports.ListTrunk = ListTrunk;
 module.exports.ListZone = ListZone;
+module.exports.ListDIDGroupByDidTypeAndState = ListDIDGroupByDidTypeAndState;

@@ -219,3 +219,64 @@ RestServer.post('/DVP/API/' + version + '/voxbone/order/OrderDids', authorizatio
     }
     return next();
 });
+
+
+
+
+RestServer.get('/DVP/API/' + version + '/voxbone/inventory/liststate/:countryCodeA3', authorization({
+    resource: "voxbone",
+    action: "write"
+}), function (req, res, next) {
+    try {
+        logger.info('[DVP-voxbone.ListState] - [HTTP]  - Request received -  Data - %s -%s', JSON.stringify(req.body), JSON.stringify(req.params));
+
+        /* var uname;
+         var pword;
+         try {
+         var b64string = req.header('Authorization');
+         b64string = b64string.replace("Basic ", "");
+         var auth = new Buffer(b64string, 'base64').toString('ascii');
+         var authInfo = auth.split(":");
+         uname = authInfo[0];
+         pword = authInfo[1];
+         } catch (ex) {
+         logger.error('[DVP-voxbone.SetLimitToNumber] - [HTTP]  - Exception occurred -  Data - %s ', "authorization", ex);
+         var jsonString = messageFormatter.FormatMessage(new Error("Authorization"), "EXCEPTION", false, "Invalid authorization info");
+         res.end(jsonString);
+         return;
+         }
+         */
+        var vox = req.params;
+        var apiKey = req.header('api_key');
+        var voxboneUrl = config.Services.voxboneUrl;
+        inventoryHandler.ListState(voxboneUrl, apiKey,res, vox.countryCodeA3);
+    }
+    catch (ex) {
+        logger.error('[DVP-voxbone.ListState] - [HTTP]  - Exception occurred -  Data - %s ', JSON.stringify(req.body), ex);
+        var jsonString = messageFormatter.FormatMessage(ex, "EXCEPTION", false, undefined);
+        res.end(jsonString);
+    }
+    return next();
+});
+
+RestServer.get('/DVP/API/' + version + '/voxbone/inventory/listdidgroup/state/:stateId/:didType/:countryCodeA3/:pageNumber/:pageSize', authorization({
+    resource: "voxbone",
+    action: "read"
+}), function (req, res, next) {
+    try {
+        logger.info('[DVP-voxbone.ListDIDGroupByDidType] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.params));
+
+        var apiKey = req.header('api_key');
+        var vox = req.params;
+        var voxboneUrl = config.Services.voxboneUrl;
+        inventoryHandler.ListDIDGroupByDidTypeAndState(voxboneUrl, apiKey, res, vox.countryCodeA3, vox.didType, vox.stateId, vox.pageNumber, vox.pageSize);
+
+    }
+    catch (ex) {
+
+        logger.error('[DVP-voxbone.ListDIDGroupByDidType] - [HTTP]  - Exception occurred -  Data - %s ', JSON.stringify(req.params), ex);
+        var jsonString = messageFormatter.FormatMessage(ex, "EXCEPTION", false, undefined);
+        res.end(jsonString);
+    }
+    return next();
+});
