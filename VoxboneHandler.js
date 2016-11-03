@@ -7,9 +7,11 @@ var request = require('request');
 var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var inventoryHandler = require('./voxbone/InventoryHandler');
 var orderHandler = require('./voxbone/OrderHandler');
+var configurationHandler = require('./voxbone/ConfigurationHandler');
 var config = require('config');
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
+var moment = require("moment");
 
 var voxboneUrl = config.Services.voxboneUrl;
 
@@ -25,10 +27,10 @@ function ListDIDGroupByDidType(apiKey, callBack, countryCodeA3, didType, pageNum
     inventoryHandler.ListDIDGroupBydidType(voxboneUrl, apiKey, callBack, countryCodeA3, didType, pageNumber, pageSize);
 }
 
-function OrderDids(req,apiKey, callBack, customerReference, description, didGroupId, quantity, countryCodeA3,channelCount) {
+function OrderDids(req, apiKey, callBack, customerReference, description, didGroupId, quantity, countryCodeA3) {
 
     var jsonString = "";
-    var jsonResp="";
+    var jsonResp = "";
 
     var options = {
         method: 'PUT',
@@ -111,10 +113,12 @@ function OrderDids(req,apiKey, callBack, customerReference, description, didGrou
                             }
 
                             var oderInfo = JSON.parse(body);
-                            if(oderInfo.status === "SUCCESS"){
+                            if (oderInfo.status === "SUCCESS") {
+
+                                var date = moment().add(-1, 'hours').format("YYYY-MM-DD HH:MM:SS");
                                 var options = {
-                                    method: 'GET',
-                                    uri: voxboneUrl + '/inventory/did?needAddressLink=false&orderId=' + cartIdentifier + '&countryCodeA3=' + countryCodeA3 + '&pageNumber=0&pageSize=100', //Query string data
+                                    method: 'GET',//'/ordering/order?pageNumber=0&pageSize=1&reference='+oderInfo.productCheckoutList[0].orderReference,
+                                    uri: voxboneUrl + '/inventory/did?orderId=' + oderInfo.productCheckoutList[0].orderReference + '&dateFrom=' + date + '&status=' + "FULFILLED" + '&pageNumber=0&pageSize=100', //Query string data
                                     headers: {
                                         'Content-Type': 'application/json',
                                         'Accept': 'application/json',
@@ -134,47 +138,50 @@ function OrderDids(req,apiKey, callBack, customerReference, description, didGrou
                                             callBack.end(jsonString);
                                             return;
                                         }
-/*
 
-                                        var oderInfo = JSON.parse(body);
-                                        if(oderInfo.status === "SUCCESS"){
-                                            var channelData ={
-                                                VoxOderId : cartIdentifier,
-                                                ChannelCount : channelCount,
-                                                Dids : channelData.Dids ,
+                                        var dids = JSON.parse(body).dids;
+                                        var arrayFound = dids.filter(function (item) {
+                                            return item.orderReference === oderInfo.productCheckoutList[0].orderReference;
+                                        });
+
+                                        if (Array.isArray(arrayFound)) {
+                                            var channelData = {
+                                                VoxOderId: oderInfo.productCheckoutList[0].orderReference,
+                                                VoxStatus: 'SUCCESS',
+                                                Dids: arrayFound.map(function (obj) {
+                                                    return obj.e164
+                                                }),
                                                 OtherJsonData: oderInfo
                                             };
                                             var companyData = {
-                                                TenantId : req.user.tenant,
-                                                CompanyId : req.user.company
+                                                TenantId: req.user.tenant,
+                                                CompanyId: req.user.company
                                             };
-                                            SaveOder(channelData,companyData);
-                                        }*/
+                                            SaveOder(channelData, companyData);
+                                        }
 
-
-
+                                        AssignVeeryTrunk(apiKey,arrayFound);
                                         jsonString = messageFormatter.FormatMessage(undefined, "SUCCESS", true, body);
                                         callBack.end(jsonString);
                                     }
                                 });
                             }
-                            else{
+                            else {
 
                                 var oderInfo = JSON.parse(body);
-                                var channelData ={
-                                    VoxOderId : cartIdentifier,
-                                    ChannelCount : channelCount,
+                                var channelData = {
+                                    VoxOderId: cartIdentifier,
+                                    VoxStatus: oderInfo.status,
                                     OtherJsonData: oderInfo
                                 };
                                 var companyData = {
-                                    TenantId : req.user.tenant,
-                                    CompanyId : req.user.company
+                                    TenantId: req.user.tenant,
+                                    CompanyId: req.user.company
                                 };
-                                SaveOder(channelData,companyData);
+                                SaveOder(channelData, companyData);
 
                                 jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "Please Contact System Administrator to Continue", false, body);
                                 callBack.end(jsonString);
-                                return;
                             }
 
                         }
@@ -185,15 +192,43 @@ function OrderDids(req,apiKey, callBack, customerReference, description, didGrou
     });
 }
 
-function SaveOder(channelData,companyData){
-    orderHandler.CreateOder(channelData,companyData, function(err,data){
-        if(err){
+function SaveOder(channelData, companyData) {
+    orderHandler.CreateOder(channelData, companyData, function (err, data) {
+        if (err) {
             var jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, data);
-            logger.debug('CreateOder - Fail To Save Oder Data - [%s] . channelData - [%s] , companyData - [%s]',jsonString, JSON.stringify(channelData),JSON.stringify(companyData) );
+            logger.debug('CreateOder - Fail To Save Oder Data - [%s] . channelData - [%s] , companyData - [%s]', jsonString, JSON.stringify(channelData), JSON.stringify(companyData));
         }
     });
 }
 
+function AssignVeeryTrunk(apiKey,orderData) {
+
+    // call trunk service. trunk service returns trunkID and dids. after receive trunk id need to config voxbone side
+
+    var data = {
+        "didIds": orderData.map(function (obj) {
+            return obj.didId
+        }),
+        "trunkId":121211,
+        "limitChannels":"",
+        "voiceUriId":orderData.voiceUriId
+    };
+    configurationHandler.ApplyConfiguration(voxboneUrl, apiKey, data, function (err, obj) {
+        if (err) {
+            var jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, data);
+            logger.error('AssignVeeryTrunk - Fail To Save Trunk Configurations - [%s] . orderData - [%s] ', jsonString, JSON.stringify(orderData));
+        }
+        else{
+            var jsonString = messageFormatter.FormatMessage(undefined, "EXCEPTION", true, obj);
+            logger.info('AssignVeeryTrunk - Successfully Configured - [%s] . orderData - [%s] ', jsonString, JSON.stringify(orderData));
+        }
+    })
+}
+
+function BuyCapacityToNumber(req,res) {
+// send notification to support team
+
+}
 
 module.exports.OrderDids = OrderDids;
 module.exports.ListCountries = ListCountries;

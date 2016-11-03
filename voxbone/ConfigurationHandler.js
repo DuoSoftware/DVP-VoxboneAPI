@@ -8,23 +8,26 @@ var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 
-function ApplyConfiguration(url, apiKey, callBack, data) {
+function ApplyConfiguration(url,apiKey, data,callBack) {
+
     var options = {
         method: 'POST',
-        uri: url + '/configuration/configuration',
-        headers: {'Content-Type': 'application/json',
+        uri: url +  '/configuration/configuration',
+        headers: {
+            'Content-Type': 'application/json',
             'Accept': 'application/json',
             'Authorization': apiKey
         },
-        body: "'" + data + "'"
+        body: data
     };
+
     request(options, function (error, response, body) {
         if (error) {
-            var jsonString = messageFormatter.FormatMessage(error, "EXCEPTION", false, undefined);
-            logger.error('[DVP-Voxbone.ApplyConfiguration] - [%s] - [%s] - Error.', response, body, error);
-            callBack.end(jsonString);
+            callBack(error,undefined);
         } else {
-            logger.info('[DVP-Voxbone.ApplyConfiguration] - [%s] - - [%s]', response, body);
+            callBack(undefined,response);
+
+            /*logger.info('[DVP-Voxbone.ApplyConfiguration] - [%s] - - [%s]', response, body);
             if (response.statusCode != 200) {
                 // Create an XMLDom Element:
                 var doc = new dom().parseFromString(body);
@@ -35,7 +38,7 @@ function ApplyConfiguration(url, apiKey, callBack, data) {
             } else {
                 var jsonString = messageFormatter.FormatMessage(undefined, "SUCCESS", true, body);
                 callBack.end(jsonString);
-            }
+            }*/
         }
     });
 }
