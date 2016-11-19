@@ -52,7 +52,7 @@ RestServer.post('/DVP/API/' + version + '/voxbone/trunk/trunksetup', authorizati
     try {
         logger.info('[DVP-voxbone.TrunkSetup] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.body));
 
-        var apiKey = req.header('authorization');//req.headers.authorization
+        var apiKey = config.Services.apiKey;//req.headers.authorization
 
         var cmp = req.body;
         trunkHandler.TrunkSetup(apiKey, res, true, cmp.FaxType, cmp.IpUrl, cmp.TrunkCode, cmp.TrunkName, cmp.LbId, cmp.OperatorCode, cmp.OperatorName);
@@ -89,7 +89,7 @@ RestServer.post('/DVP/API/' + version + '/voxbone/trunk/:trunkid/limitnumber', a
          return;
          }
          */
-        var apiKey = req.header('authorization');
+        var apiKey = config.Services.apiKey;
         var cmp = req.body;
         trunkHandler.SetLimitToNumber(apiKey, cmp.limitDescription, cmp.maxCount, cmp.phoneNumber, req.params.trunkid, res);
 
@@ -125,7 +125,7 @@ RestServer.get('/DVP/API/' + version + '/voxbone/inventory/trunk', authorization
          return;
          }
          */
-        var apiKey = req.header('authorization');
+        var apiKey = config.Services.apiKey;
         var voxboneUrl = config.Services.voxboneUrl;
         inventoryHandler.ListTrunk(voxboneUrl, apiKey,res);
     }
@@ -144,7 +144,7 @@ RestServer.get('/DVP/API/' + version + '/voxbone/inventory/listcountries/:pageNu
     try {
         logger.info('[DVP-voxbone.ListCountries] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.params));
 
-        var apiKey = req.header('api_key');
+        var apiKey = config.Services.apiKey;
         var vox = req.params;
         voxboneHandler.ListCountries(apiKey, res, vox.pageNumber, vox.pageSize);
 
@@ -166,7 +166,7 @@ RestServer.get('/DVP/API/' + version + '/voxbone/inventory/listdidgroup/:country
         logger.info('[DVP-voxbone.ListDIDGroup] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.params));
 
         var vox = req.params;
-        var apiKey = req.header('api_key');
+        var apiKey = config.Services.apiKey;
 
         voxboneHandler.ListDIDGroup(apiKey, res, vox.countryCodeA3, vox.pageNumber, vox.pageSize);
     }
@@ -185,7 +185,7 @@ RestServer.get('/DVP/API/' + version + '/voxbone/inventory/listdidgroup/type/:di
     try {
         logger.info('[DVP-voxbone.ListDIDGroupByDidType] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.params));
 
-        var apiKey = req.header('api_key');
+        var apiKey = config.Services.apiKey;
         var vox = req.params;
         voxboneHandler.ListDIDGroupByDidType(apiKey, res, vox.countryCodeA3, vox.didType, vox.pageNumber, vox.pageSize);
 
@@ -206,9 +206,9 @@ RestServer.post('/DVP/API/' + version + '/voxbone/order/OrderDids', authorizatio
     try {
         logger.info('[DVP-voxbone.OrderDids] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.body));
 
-        var apiKey = req.header('api_key');
+        var apiKey = config.Services.apiKey;
         var vox = req.params;
-        voxboneHandler.OrderDids(req,apiKey, res, vox.customerReference, vox.description, vox.didGroupId, vox.quantity, vox.countryCodeA3,vox.ChannelCount);
+        voxboneHandler.OrderDids(req,apiKey, res, vox.customerReference, vox.description, vox.didGroupId, vox.quantity, vox.ChannelCount, vox.countryCodeA3);
 
     }
     catch (ex) {
@@ -247,7 +247,7 @@ RestServer.get('/DVP/API/' + version + '/voxbone/inventory/liststate/:countryCod
          }
          */
         var vox = req.params;
-        var apiKey = req.header('api_key');
+        var apiKey = config.Services.apiKey;
         var voxboneUrl = config.Services.voxboneUrl;
         inventoryHandler.ListState(voxboneUrl, apiKey,res, vox.countryCodeA3);
     }
@@ -266,7 +266,7 @@ RestServer.get('/DVP/API/' + version + '/voxbone/inventory/listdidgroup/state/:s
     try {
         logger.info('[DVP-voxbone.ListDIDGroupByDidType] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.params));
 
-        var apiKey = req.header('api_key');
+        var apiKey = config.Services.apiKey;
         var vox = req.params;
         var voxboneUrl = config.Services.voxboneUrl;
         inventoryHandler.ListDIDGroupByDidTypeAndState(voxboneUrl, apiKey, res, vox.countryCodeA3, vox.didType, vox.stateId, vox.pageNumber, vox.pageSize);

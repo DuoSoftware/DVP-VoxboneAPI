@@ -12,6 +12,8 @@ var config = require('config');
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 var moment = require("moment");
+var didReqHandler = require('./DidRequestHandler');
+var trunkHandler = require('./TrunkHandler');
 
 var voxboneUrl = config.Services.voxboneUrl;
 
@@ -27,7 +29,7 @@ function ListDIDGroupByDidType(apiKey, callBack, countryCodeA3, didType, pageNum
     inventoryHandler.ListDIDGroupBydidType(voxboneUrl, apiKey, callBack, countryCodeA3, didType, pageNumber, pageSize);
 }
 
-function OrderDids(req, apiKey, callBack, customerReference, description, didGroupId, quantity, countryCodeA3) {
+function OrderDids(req, apiKey, callBack, customerReference, description, didGroupId, quantity, capacity, countryCodeA3) {
 
     var jsonString = "";
     var jsonResp = "";
@@ -86,10 +88,12 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                         callBack.end(jsonString);
                     }
 
+                    //-------------------Check Account Funds------------------------------------------------------
+
                     var options = {
                         method: 'GET',
 
-                        uri: voxboneUrl + '/ordering/cart/' + cartIdentifier + '/checkout?cartIdentifier=' + cartIdentifier, //Query string data
+                        uri: voxboneUrl + '/inventory/didgroup?countryCodeA3='+countryCodeA3+'&didGroupIds='+didGroupId+'&pageNumber=0&pageSize=10', //Query string data
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
@@ -100,92 +104,215 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                     request(options, function (error, response, body) { //Checkout cart
                         if (error) {
                             jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                            logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart] - [%s] - [%s] - Error.', response, body, error);
+                            logger.error('[DVP-Voxbone.CreateCart.didgroup.getPrice] - [%s] - [%s] - Error.', response, body, error);
                             callBack.end(jsonString);
                         } else {
-                            logger.info('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart] - [%s] - - [%s]', response, body);
+                            logger.info('[DVP-Voxbone.CreateCart.didgroup.getPrice] - [%s] - - [%s]', response, body);
                             jsonResp = JSON.parse(body);
-                            if (response.statusCode != 200 || jsonResp.status != "SUCCESS") {
+                            if (response.statusCode != 200 || jsonResp.resultCount <= 0) {
 
                                 jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
                                 callBack.end(jsonString);
                                 return;
                             }
 
-                            var oderInfo = JSON.parse(body);
-                            if (oderInfo.status === "SUCCESS") {
+                            var didGroupInfo = jsonResp.didGroups[0];
+                            var setup100 = parseInt(didGroupInfo.setup100);
+                            var monthly100 = parseInt(didGroupInfo.monthly100);
 
-                                var date = moment().add(-1, 'hours').format("YYYY-MM-DD HH:MM:SS");
-                                var options = {
-                                    method: 'GET',//'/ordering/order?pageNumber=0&pageSize=1&reference='+oderInfo.productCheckoutList[0].orderReference,
-                                    uri: voxboneUrl + '/inventory/did?orderId=' + oderInfo.productCheckoutList[0].orderReference + '&dateFrom=' + date + '&status=' + "FULFILLED" + '&pageNumber=0&pageSize=100', //Query string data
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Accept': 'application/json',
-                                        'Authorization': apiKey
-                                    }
-                                };
-                                request(options, function (error, response, body) {
-                                    if (error) {
-                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                                        logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - [%s] - Error.', response, body, error);
+                            var cartValue = (setup100+monthly100)*quantity;
+
+
+
+
+                            var options = {
+                                method: 'GET',
+
+                                uri: voxboneUrl + '/ordering/accountbalance', //Query string data
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'Authorization': apiKey
+                                }
+                            };
+
+                            request(options, function (error, response, body) { //Checkout cart
+                                if (error) {
+                                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                    logger.error('[DVP-Voxbone.CreateCart.AddToCart.accountbalance] - [%s] - [%s] - Error.', response, body, error);
+                                    callBack.end(jsonString);
+                                } else {
+                                    logger.info('[DVP-Voxbone.CreateCart.AddToCart.accountbalance] - [%s] - - [%s]', response, body);
+                                    jsonResp = JSON.parse(body);
+                                    if (response.statusCode != 200) {// || jsonResp.accountBalance.active === false
+
+                                        jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
                                         callBack.end(jsonString);
-                                    } else {
-                                        logger.info('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - - [%s]', response, body);
-                                        if (response.statusCode != 200) {
-                                            jsonResp = JSON.parse(body);
-                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
-                                            callBack.end(jsonString);
-                                            return;
-                                        }
+                                        return;
+                                    }
 
-                                        var dids = JSON.parse(body).dids;
-                                        var arrayFound = dids.filter(function (item) {
-                                            return item.orderReference === oderInfo.productCheckoutList[0].orderReference;
+
+                                    var accBalance = jsonResp.accountBalance.balance * 100;
+
+                                    if(accBalance > cartValue){
+
+
+
+                                        var options = {
+                                            method: 'GET',
+
+                                            uri: voxboneUrl + '/ordering/cart/' + cartIdentifier + '/checkout?cartIdentifier=' + cartIdentifier, //Query string data
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Accept': 'application/json',
+                                                'Authorization': apiKey
+                                            }
+                                        };
+
+                                        request(options, function (error, response, body) { //Checkout cart
+                                            if (error) {
+                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart] - [%s] - [%s] - Error.', response, body, error);
+                                                callBack.end(jsonString);
+                                            } else {
+                                                logger.info('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart] - [%s] - - [%s]', response, body);
+                                                jsonResp = JSON.parse(body);
+                                                if (response.statusCode != 200 || jsonResp.status != "SUCCESS") {
+
+                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
+                                                    callBack.end(jsonString);
+                                                    return;
+                                                }
+
+                                                var oderInfo = JSON.parse(body);
+                                                if (oderInfo.status === "SUCCESS") {
+
+                                                    var date = moment().add(-1, 'hours').format("YYYY-MM-DD HH:MM:SS");
+                                                    var options = {
+                                                        method: 'GET',//'/ordering/order?pageNumber=0&pageSize=1&reference='+oderInfo.productCheckoutList[0].orderReference,
+                                                        uri: voxboneUrl + '/inventory/did?orderReference=' + oderInfo.productCheckoutList[0].orderReference + '&dateFrom=' + date + '&status=' + "FULFILLED" + '&pageNumber=0&pageSize=100', //Query string data
+                                                        headers: {
+                                                            'Content-Type': 'application/json',
+                                                            'Accept': 'application/json',
+                                                            'Authorization': apiKey
+                                                        }
+                                                    };
+                                                    request(options, function (error, response, body) {
+                                                        if (error) {
+                                                            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                            logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - [%s] - Error.', response, body, error);
+                                                            callBack.end(jsonString);
+                                                        } else {
+                                                            logger.info('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - - [%s]', response, body);
+                                                            if (response.statusCode != 200) {
+                                                                jsonResp = JSON.parse(body);
+                                                                jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                                                                callBack.end(jsonString);
+                                                                return;
+                                                            }
+
+                                                            var dids = JSON.parse(body).dids;
+                                                            var arrayFound = dids.filter(function (item) {
+                                                                return item.orderReference === oderInfo.productCheckoutList[0].orderReference;
+                                                            });
+
+                                                            /*if (Array.isArray(arrayFound)) {
+                                                                var channelData = {
+                                                                    VoxOderId: '73929DS1404188',//oderInfo.productCheckoutList[0].orderReference,
+                                                                    VoxStatus: 'SUCCESS',
+                                                                    Dids: arrayFound.map(function (obj) {
+                                                                        return obj.e164
+                                                                    }),
+                                                                    OtherJsonData: oderInfo
+                                                                };
+                                                                var companyData = {
+                                                                    TenantId: req.user.tenant,
+                                                                    CompanyId: req.user.company
+                                                                };
+                                                                //SaveOder(channelData, companyData);
+                                                                //SaveOder(channelData, companyData);
+                                                            }*/
+
+                                                            var tenant = parseInt(req.user.tenant);
+                                                            var company = parseInt(req.user.company);
+                                                            var lastMessage;
+                                                            var lastStatus;
+
+
+                                                            if(dids[0].e164.indexOf('+') > -1){
+                                                                dids[0].e164 = dids[0].e164.replace('+', '');
+                                                            }
+
+
+                                                            didReqHandler.AddVoxDidRequest(tenant, company, dids[0], capacity, setup100, monthly100, function(err, isSuccess, msg){
+                                                                lastMessage = msg;
+                                                                lastStatus = isSuccess;
+                                                                if(err || !isSuccess){
+                                                                    jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
+                                                                    callBack.end(jsonString);
+                                                                }else{
+                                                                    trunkHandler.TrunkSetup(tenant, company, dids[0].e164, function(err, response, body){
+                                                                        if(err || response.statusCode !== 200 || !body.IsSuccess || !body.Result){
+                                                                            jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
+                                                                            callBack.end(jsonString);
+                                                                        }else{
+                                                                            didReqHandler.SetTrunk(tenant, company, dids[0], body.Result.TrunkCode, function(err, isSuccess, msg){
+                                                                                if(err || !isSuccess){
+                                                                                    jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
+                                                                                    callBack.end(jsonString);
+                                                                                }else{
+                                                                                    jsonString = messageFormatter.FormatMessage(undefined, msg, isSuccess, undefined);
+                                                                                    callBack.end(jsonString);
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    });
+                                                                }
+                                                            });
+
+                                                            //AssignVeeryTrunk(apiKey,arrayFound);
+                                                            //jsonString = messageFormatter.FormatMessage(undefined, "SUCCESS", true, body);
+                                                            //callBack.end(jsonString);
+                                                        }
+                                                    });
+                                                }
+                                                else {
+
+                                                    /*var oderInfo = JSON.parse(body);
+                                                    var channelData = {
+                                                        VoxOderId: cartIdentifier,
+                                                        VoxStatus: oderInfo.status,
+                                                        OtherJsonData: oderInfo
+                                                    };
+                                                    var companyData = {
+                                                        TenantId: req.user.tenant,
+                                                        CompanyId: req.user.company
+                                                    };
+                                                    //SaveOder(channelData, companyData);
+                                                    //SaveOder(channelData, companyData);*/
+
+                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "Please Contact System Administrator to Continue", false, body);
+                                                    callBack.end(jsonString);
+                                                }
+
+                                            }
                                         });
 
-                                        if (Array.isArray(arrayFound)) {
-                                            var channelData = {
-                                                VoxOderId: oderInfo.productCheckoutList[0].orderReference,
-                                                VoxStatus: 'SUCCESS',
-                                                Dids: arrayFound.map(function (obj) {
-                                                    return obj.e164
-                                                }),
-                                                OtherJsonData: oderInfo
-                                            };
-                                            var companyData = {
-                                                TenantId: req.user.tenant,
-                                                CompanyId: req.user.company
-                                            };
-                                            SaveOder(channelData, companyData);
-                                        }
 
-                                        AssignVeeryTrunk(apiKey,arrayFound);
-                                        jsonString = messageFormatter.FormatMessage(undefined, "SUCCESS", true, body);
+
+
+
+                                    }else{
+                                        jsonString = messageFormatter.FormatMessage(new Error("Insufficient Founds"), "EXCEPTION", false, body);
                                         callBack.end(jsonString);
+                                        return;
                                     }
-                                });
-                            }
-                            else {
-
-                                var oderInfo = JSON.parse(body);
-                                var channelData = {
-                                    VoxOderId: cartIdentifier,
-                                    VoxStatus: oderInfo.status,
-                                    OtherJsonData: oderInfo
-                                };
-                                var companyData = {
-                                    TenantId: req.user.tenant,
-                                    CompanyId: req.user.company
-                                };
-                                SaveOder(channelData, companyData);
-
-                                jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "Please Contact System Administrator to Continue", false, body);
-                                callBack.end(jsonString);
-                            }
-
+                                }
+                            });
                         }
                     });
+
+
                 }
             });
         }

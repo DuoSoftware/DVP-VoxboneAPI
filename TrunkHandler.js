@@ -12,193 +12,70 @@ var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 
 var limitUrl = format('http://{0}:{1}/DVP/API/{2}/', config.Services.limitServiceHost, config.Services.limitServicePort, config.Services.limitServiceVersion);
-var trunkUrl = format("http://{0}:{1}/DVP/API/{2}/", config.Services.trunkServiceHost, config.Services.trunkServicePort, config.Services.trunkServiceVersion);
+var trunkUrl = format("http://{0}/DVP/API/{1}", 'phonenumbertrunkservice.app.veery.cloud', '1.0.0.0');
 
 
-function TrunkSetup(apiKey, callBack, enable, faxType, ipUrl, trunkCode, trunkName, lbId, operatorCode, operatorName) {// if no outbound set to null
-
-    var TrunkId = -1;
-    var data = '{ "Enable":"' + enable + '","FaxType":"' + faxType + '","IpUrl":"' + ipUrl + '","ObjCategory":"Voxbone","ObjClass":"Voxbone","ObjType":"Voxbone","TrunkCode":"trunkCode","TrunkName":"trunkName"}';
+function TrunkSetup(tenant, company, phoneNumber, callback) {// if no outbound set to null
+    //var jsonString;
+    var data = '{ "PhoneNumber":"' + phoneNumber + '","ClientCompany":' + company+',"ClientTenant":' + tenant+'}';
     var options = {
         method: 'POST',
-        uri: trunkUrl + '/PhoneNumberTrunkApi/Trunk',
+        uri: trunkUrl + '/PhoneNumberTrunkApi/Operator/VOXBONE/TrunkNumber',
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': apiKey
+            'Authorization': config.Services.authToken,
+            'companyinfo': '1:3'
         },
         body: data
     };
     request(options, function (error, response, body) {
         if (error) {
-            var jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            //jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
             logger.error('[DVP-Voxbone.CreateTrunk] - [%s] - [%s] - Error.', response, body, error);
-            callBack.end(jsonString);
+            //callBack.end(error, body);
         } else {
 
             logger.info('[DVP-Voxbone.CreateTrunk-SetLoadBalancer] - [%s]', response);
-            var jsonResp = JSON.parse(body);
-            if (!jsonResp.IsSuccess) {
-                var jsonString = messageFormatter.FormatMessage(new error(jsonResp), "EXCEPTION", false, response);
-                callBack.end(jsonString);
-                return;
-            }
-            TrunkId = jsonResp.Result;
-            var options = {
-                method: 'POST',
-                uri: trunkUrl + '/PhoneNumberTrunkApi/Trunk/' + TrunkId + '/SetCloud/' + lbId,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': apiKey
-                },
-            };
-            request(options, function (error, response, body) {
-                if (error) {
-                    var jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                    logger.error('[DVP-Voxbone.CreateTrunk-SetLoadBalancer] - [%s] - [%s] - Error.', response, body, error);
-                    callBack.end(jsonString);
-                } else {
-
-                    logger.info('[DVP-Voxbone.CreateTrunk-SetLoadBalancer-Operator] - [%s] -', response);
-                    jsonResp = JSON.parse(body);
-                    if (!jsonResp.IsSuccess) {
-                        var jsonString = messageFormatter.FormatMessage(new error(jsonResp), "EXCEPTION", false, response);
-                        callBack.end(jsonString);
-                        return;
-                    }
-                    var data = '{"OperatorCode":"' + operatorCode + '","OperatorName":"' + operatorName + '","ObjClass":"voxbone","ObjType":"voxbone","ObjCategory":"voxbone"}';
-                    var options = {
-                        method: 'POST',
-                        uri: trunkUrl + '/PhoneNumberTrunkApi/Operator',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'Authorization': apiKey
-                        },
-                        body: data
-                    };
-                    request(options, function (error, response, body) {
-                        if (error) {
-                            var jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                            logger.error('[DVP-Voxbone.CreateTrunk-SetLoadBalancer-Operator] - [%s] - [%s] - Error.', response, body, error);
-                            callBack.end(jsonString);
-                        } else {
-
-                            logger.info('[DVP-Voxbone.CreateTrunk-SetLoadBalancer-Operator-SetOperator] - [%s]', response);
-
-                            jsonResp = JSON.parse(body);
-                            if (!jsonResp.IsSuccess) {
-                                var jsonString = messageFormatter.FormatMessage(new error(jsonResp), "EXCEPTION", false, response);
-                                callBack.end(jsonString);
-                                return;
-                            }
-                            var opId = jsonResp.Result;
-
-                            var options = {
-                                method: 'POST',
-                                uri: trunkUrl + '/PhoneNumberTrunkApi/Trunk/' + TrunkId + '/SetOperator/' + opId,
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'Authorization': apiKey
-                                },
-
-                            };
-                            request(options, function (error, response, body) {
-                                if (error) {
-                                    var jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                                    logger.error('[DVP-Voxbone.CreateTrunk-SetLoadBalancer-Operator-SetOperator] - [%s] - [%s] - Error.', response, body, error);
-                                    callBack.end(jsonString);
-                                } else {
-                                    logger.info('[DVP-Voxbone.CreateTrunk-SetLoadBalancer-Operator-SetOperator] - [%s] - - [%s]', response, body);
-                                    var jsonString = messageFormatter.FormatMessage(undefined, "SUCCESS", true, TrunkId);
-                                    callBack.end(jsonString);
-                                }
-                            });
-                        }
-                    });
-                }
-            });
+            //jsonResp = JSON.parse(body);
+            //if (!jsonResp.IsSuccess) {
+                //jsonString = messageFormatter.FormatMessage(new error(jsonResp), "EXCEPTION", false, response);
+                //callBack.end(jsonString);
+                //return;
+            //}
+            //var trunkInfo = jsonResp.Result;
         }
+        callback(error, response, JSON.parse(body));
     });
 }
 
-function SetLimitToNumber(apiKey, limitDescription, maxCount, phoneNumber, trunkId, callBack) {
+function SetLimitToNumber(phoneNumber, limit, callback) {
 
-    var data = '{"LimitDescription":"' + limitDescription + '","MaxCount":' + maxCount + ',"Enable":true}';
+    var data = '{"PhoneNumber":"' + phoneNumber + '","Limit":' + limit+'}';
     var options = {
         method: 'POST',
-        uri: limitUrl + '/LimitAPI/Limit',
+        uri: trunkUrl + '/PhoneNumberTrunkApi/Operator/VOXBONE/AssignNumberLimit',
         headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': apiKey
+            'Accept': 'application/json'
         },
         body: data
     };
     request(options, function (error, response, body) {
         if (error) {
-            var jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            //var jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
             logger.error('[DVP-Voxbone.SetLimitToNumber] - [%s] - [%s] - Error.', response, body, error);
-            callBack.end(jsonString);
+            //.end(jsonString);
         } else {
             logger.info('[DVP-Voxbone.SetLimitToNumber] - [%s] - - [%s]', response, body);
-            var jsonResp = JSON.parse(body);
-            if (!jsonResp.IsSuccess) {
-                var jsonString = messageFormatter.FormatMessage(new error(jsonResp), "EXCEPTION", false, response);
-                callBack.end(jsonString);return;
-            }
-            var limitId = jsonResp.Result;
-
-            var data = '{"PhoneNumber":' + phoneNumber + ',"Enable":true,"ObjClass":"CALL","ObjCategory":"INBOUND","TrunkId":' + trunkId + '}';
-            var options = {
-                method: 'POST',
-                uri: trunkUrl + '/PhoneNumberTrunkApi/TrunkNumber',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': apiKey
-                },
-                body: data
-            };
-            request(options, function (error, response, body) {
-                if (error) {
-                    var jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                    logger.error('[DVP-Voxbone.SetLimitToNumber-TrunkNumber] - [%s] - [%s] - Error.', response, body, error);
-                    callBack.end(jsonString);
-                } else {
-                    logger.info('[DVP-Voxbone.SetLimitToNumber-TrunkNumber] - [%s] - - [%s]', response, body);
-                    var jsonResp = JSON.parse(body);
-                    if (!jsonResp.IsSuccess) {
-                        var jsonString = messageFormatter.FormatMessage(new error(jsonResp), "EXCEPTION", false, response);
-                        callBack.end(jsonString);return;
-                    }
-
-                    var options = {
-                        method: 'POST',
-                        uri: trunkUrl + '/PhoneNumberTrunkApi/TrunkNumber/' + phoneNumber + '/SetInboundLimit/' + limitId,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'Authorization': apiKey
-                        },
-
-                    };
-                    request(options, function (error, response, body) {
-                        if (error) {
-                            var jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                            logger.error('[DVP-Voxbone.SetLimitToNumber-TrunkNumber] - [%s] - [%s] - Error.', response, body, error);
-                            callBack.end(jsonString);
-                        } else {
-                            logger.info('[DVP-Voxbone.SetLimitToNumber-TrunkNumber] - [%s] - - [%s]', response, body);
-                            var jsonString = messageFormatter.FormatMessage(undefined, "SUCCESS", true, limitId);
-                            callBack.end(jsonString);
-                        }
-                    });
-                }
-            });
+            //var jsonResp = JSON.parse(body);
+            //if (!jsonResp.IsSuccess) {
+                //var jsonString = messageFormatter.FormatMessage(new error(jsonResp), "EXCEPTION", false, response);
+                //callBack.end(jsonString);return;
+            //}
+            //var limitId = jsonResp.Result;
         }
+        callback(error, response, JSON.parse(body));
     });
 }
 

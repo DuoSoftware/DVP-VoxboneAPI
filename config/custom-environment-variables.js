@@ -16,7 +16,8 @@ module.exports = {
         "logfilepath": "LOG4JS_CONFIG"
     },
     "Services": {
-
+        "authToken": "HOST_TOKEN",
+        "apiKey": "VOX_APIKEY",
         "limitServiceHost": "SYS_LIMITHANDLER_HOST",
         "limitServicePort": "SYS_LIMITHANDLER_PORT",
         "limitServiceVersion": "SYS_LIMITHANDLER_VERSION",

@@ -8,6 +8,7 @@ var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var Enum = require('enum');
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
+var config = require('config');
 
 var DidTypes = new Enum({
     'GEOGRAPHIC': 0,
@@ -403,6 +404,43 @@ function ListDIDGroupByDidTypeAndState(url, apiKey, callBack, countryCodeA3, did
     });
 }
 
+
+
+//-------------------------------Internal Methods------------------------------------------------------------
+
+function GetDID(callBack, didIds, pageNumber, pageSize) {
+    var jsonString = "";
+    var jsonResp = undefined;
+    var options = {
+        method: 'GET',
+        uri: config.Services.voxboneUrl + '/inventory/did?didIds='+didIds+'&pageNumber='+pageNumber+'&pageSize='+pageSize, //Query string data
+        headers: {'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': config.Services.apiKey
+        }
+    };
+    request(options, function (error, response, body) {
+        if (error) {
+            jsonString = messageFormatter.FormatMessage(error, "EXCEPTION", false, undefined);
+            logger.error('[DVP-Voxbone.GetDID] - [%s] - [%s] - Error.', response, body, error);
+            callBack.end(jsonResp);
+        } else {
+            logger.info('[DVP-Voxbone.GetDID] - [%s] - - [%s]', response, body);
+            if (response.statusCode != 200) {
+                jsonResp = JSON.parse(body);
+                jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                console.log(jsonString);
+                callBack.end(jsonResp);
+            } else {
+                jsonString = messageFormatter.FormatMessage(undefined, "SUCCESS", true, body);
+                console.log(jsonString);
+                callBack.end(jsonResp);
+            }
+        }
+    });
+}
+
+
 module.exports.ListCountry = ListCountry;
 module.exports.ListCountries = ListCountries;
 module.exports.ListCountriesByDidType = ListCountriesByDidType;
@@ -416,3 +454,4 @@ module.exports.ListFeature = ListFeature;
 module.exports.ListTrunk = ListTrunk;
 module.exports.ListZone = ListZone;
 module.exports.ListDIDGroupByDidTypeAndState = ListDIDGroupByDidTypeAndState;
+module.exports.GetDID = GetDID;
