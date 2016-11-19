@@ -208,7 +208,9 @@ RestServer.post('/DVP/API/' + version + '/voxbone/order/OrderDids', authorizatio
 
         var apiKey = config.Services.apiKey;
         var vox = req.params;
-        voxboneHandler.OrderDids(req,apiKey, res, vox.customerReference, vox.description, vox.didGroupId, vox.quantity, vox.ChannelCount, vox.countryCodeA3);
+        var channelCount = vox.ChannelCount? vox.ChannelCount: 1;
+        var customRef = vox.customerReference? vox.customerReference: "Company:"+req.user.company;
+        voxboneHandler.OrderDids(req,apiKey, res, customRef, vox.description, vox.didGroupId, vox.quantity, vox.ChannelCount, channelCount);
 
     }
     catch (ex) {
