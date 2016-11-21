@@ -446,7 +446,7 @@ function ConfigureDid(apiKey, callback, didId, didEnabled, activeCapacity){
                                                     } else {
                                                         logger.info('[DVP-Voxbone.Did.configuration] - [%s] - - [%s]', response, body);
                                                         jsonResp = JSON.parse(body);
-                                                        if (response.statusCode != 200 || jsonResp.status != "SUCCESS") {
+                                                        if (response.statusCode != 200) {
 
                                                             jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
                                                             callback.end(jsonString);
