@@ -185,7 +185,110 @@ var SetRequestStatus = function(tenant, company, didId, status, callback){
     }
 };
 
+var GetDidRequest = function(didId, callback){
+    try{
+        dbConn.VoxboneDIDRequest.findOne({where: [{DidId: didId}]})
+            .then(function (didRequest)
+            {
+
+                if(didRequest)
+                {
+
+                        logger.info('[DVP-VoxboneAPI.GetDidRequest] PGSQL request query success');
+                        callback(undefined, true, "Get DID Request Success", didRequest);
+
+
+
+                }
+                else
+                {
+                    logger.error('[DVP-VoxboneAPI.GetDidRequest] - PGSQL query failed');
+                    callback(undefined, false, "No DID Request Found", undefined);
+                }
+
+
+            }).catch(function(err)
+            {
+                logger.error('[DVP-VoxboneAPI.GetDidRequest] - PGSQL query failed', err);
+                callback(err, false, "Error in Get DID Request", undefined);
+            });
+    }catch(ex){
+        logger.error('[DVP-VoxboneAPI.GetDidRequest] - PGSQL query failed', ex);
+        callback(ex, false, "Error in Get DID Request", undefined);
+    }
+};
+
+var GetAllDidRequest = function(callback){
+    try{
+        dbConn.VoxboneDIDRequest.find({})
+            .then(function (didRequest)
+            {
+
+                if(didRequest)
+                {
+
+                    logger.info('[DVP-VoxboneAPI.GetAllDidRequest] PGSQL request query success');
+                    callback(undefined, true, "Get All DID Request Success", didRequest);
+
+
+
+                }
+                else
+                {
+                    logger.error('[DVP-VoxboneAPI.GetAllDidRequest] - PGSQL query failed');
+                    callback(undefined, false, "No DID Request Found", undefined);
+                }
+
+
+            }).catch(function(err)
+            {
+                logger.error('[DVP-VoxboneAPI.GetAllDidRequest] - PGSQL query failed', err);
+                callback(err, false, "Error in Get All DID Request", undefined);
+            });
+    }catch(ex){
+        logger.error('[DVP-VoxboneAPI.GetAllDidRequest] - PGSQL query failed', ex);
+        callback(ex, false, "Error in Get All DID Request", undefined);
+    }
+};
+
+var GetAllDidRequestByStatus = function(status, callback){
+    try{
+        dbConn.VoxboneDIDRequest.find({where: [{RequestStatus: status}]})
+            .then(function (didRequest)
+            {
+
+                if(didRequest)
+                {
+
+                    logger.info('[DVP-VoxboneAPI.GetAllDidRequestByStatus] PGSQL request query success');
+                    callback(undefined, true, "Get All DID Request Success", didRequest);
+
+
+
+                }
+                else
+                {
+                    logger.error('[DVP-VoxboneAPI.GetAllDidRequestByStatus] - PGSQL query failed');
+                    callback(undefined, false, "No DID Request Found", undefined);
+                }
+
+
+            }).catch(function(err)
+            {
+                logger.error('[DVP-VoxboneAPI.GetAllDidRequestByStatus] - PGSQL query failed', err);
+                callback(err, false, "Error in Get All DID Request", undefined);
+            });
+    }catch(ex){
+        logger.error('[DVP-VoxboneAPI.GetAllDidRequestByStatus] - PGSQL query failed', ex);
+        callback(ex, false, "Error in Get All DID Request", undefined);
+    }
+};
+
+
 module.exports.AddVoxDidRequest = AddVoxDidRequest;
 module.exports.EnableCapacity = EnableCapacity;
 module.exports.SetTrunk = SetTrunk;
 module.exports.SetRequestStatus = SetRequestStatus;
+module.exports.GetDidRequest = GetDidRequest;
+module.exports.GetAllDidRequest = GetAllDidRequest;
+module.exports.GetAllDidRequestByStatus = GetAllDidRequestByStatus;

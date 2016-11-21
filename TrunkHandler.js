@@ -49,7 +49,7 @@ function TrunkSetup(tenant, company, phoneNumber, callback) {// if no outbound s
     });
 }
 
-function SetLimitToNumber(phoneNumber, limit, callback) {
+function SetLimitToNumber(company, tenant, phoneNumber, limit, callback) {
 
     var data = '{"PhoneNumber":"' + phoneNumber + '","Limit":' + limit+'}';
     var options = {
@@ -57,7 +57,9 @@ function SetLimitToNumber(phoneNumber, limit, callback) {
         uri: trunkUrl + '/PhoneNumberTrunkApi/Operator/VOXBONE/AssignNumberLimit',
         headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Authorization': config.Services.authToken,
+            'companyinfo': tenant+':'+company
         },
         body: data
     };

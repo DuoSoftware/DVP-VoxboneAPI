@@ -13,6 +13,7 @@ var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJ
 var trunkHandler = require('./TrunkHandler');
 var inventoryHandler = require('./voxbone/InventoryHandler');
 var voxboneHandler = require('./VoxboneHandler');
+var didReqHandler = require('./DidRequestHandler');
 
 //-------------------------  Restify Server ------------------------- \\
 var RestServer = restify.createServer({
@@ -277,6 +278,75 @@ RestServer.get('/DVP/API/' + version + '/voxbone/inventory/listdidgroup/state/:s
     catch (ex) {
 
         logger.error('[DVP-voxbone.ListDIDGroupByDidType] - [HTTP]  - Exception occurred -  Data - %s ', JSON.stringify(req.params), ex);
+        var jsonString = messageFormatter.FormatMessage(ex, "EXCEPTION", false, undefined);
+        res.end(jsonString);
+    }
+    return next();
+});
+
+
+RestServer.put('/DVP/API/' + version + '/voxbone/order/ConfigDid', authorization({
+    resource: "voxbone",
+    action: "write"
+}), function (req, res, next) {
+    try {
+        logger.info('[DVP-voxbone.ConfigDid] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.body));
+
+        var apiKey = config.Services.apiKey;
+        var vox = req.params;
+
+        voxboneHandler.ConfigureDid(apiKey, res, vox.DidId, vox.DidEnabled, vox.CapacityEnabled);
+
+    }
+    catch (ex) {
+
+        logger.error('[DVP-voxbone.ConfigDid] - [HTTP]  - Exception occurred -  Data - %s ', JSON.stringify(req.body), ex);
+        var jsonString = messageFormatter.FormatMessage(ex, "EXCEPTION", false, undefined);
+        res.end(jsonString);
+    }
+    return next();
+});
+
+RestServer.get('/DVP/API/' + version + '/voxbone/order/DidRequest', authorization({
+    resource: "voxbone",
+    action: "write"
+}), function (req, res, next) {
+    try {
+        logger.info('[DVP-voxbone.order.DidRequest] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.body));
+
+
+        didReqHandler.GetAllDidRequest(function(err, isSuccess, msg, obj){
+            var jsonString = messageFormatter.FormatMessage(err, msg, isSuccess, obj);
+            res.end(jsonString);
+        });
+
+    }
+    catch (ex) {
+
+        logger.error('[DVP-voxbone.order.DidRequest] - [HTTP]  - Exception occurred -  Data - %s ', JSON.stringify(req.body), ex);
+        var jsonString = messageFormatter.FormatMessage(ex, "EXCEPTION", false, undefined);
+        res.end(jsonString);
+    }
+    return next();
+});
+
+RestServer.get('/DVP/API/' + version + '/voxbone/order/DidRequest/:status', authorization({
+    resource: "voxbone",
+    action: "write"
+}), function (req, res, next) {
+    try {
+        logger.info('[DVP-voxbone.order.DidRequestByStatus] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.body));
+
+
+        didReqHandler.GetAllDidRequestByStatus(req.params.status, function(err, isSuccess, msg, obj){
+            var jsonString = messageFormatter.FormatMessage(err, msg, isSuccess, obj);
+            res.end(jsonString);
+        });
+
+    }
+    catch (ex) {
+
+        logger.error('[DVP-voxbone.order.DidRequestByStatus] - [HTTP]  - Exception occurred -  Data - %s ', JSON.stringify(req.body), ex);
         var jsonString = messageFormatter.FormatMessage(ex, "EXCEPTION", false, undefined);
         res.end(jsonString);
     }
