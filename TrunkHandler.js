@@ -12,7 +12,7 @@ var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 
 var limitUrl = format('http://{0}:{1}/DVP/API/{2}/', config.Services.limitServiceHost, config.Services.limitServicePort, config.Services.limitServiceVersion);
-var trunkUrl = format("http://{0}/DVP/API/{1}", 'phonenumbertrunkservice.app.veery.cloud', '1.0.0.0');
+var trunkUrl = format("http://{0}:/DVP/API/{1}", 'phonenumbertrunkservice.app.veery.cloud', '1.0.0.0');
 
 
 function TrunkSetup(tenant, company, phoneNumber, callback) {// if no outbound set to null

@@ -349,63 +349,125 @@ function ConfigureDid(apiKey, callback, didId, didEnabled, activeCapacity){
             if(dids && dids.length >0){
 
                 var didToConfig = dids[0];
+                var phoneNumber = didToConfig.e164;
                 if(didToConfig.e164.indexOf('+') > -1){
-                    didToConfig.e164 = didToConfig.e164.replace('+', '');
+                    phoneNumber = phoneNumber.replace('+', '');
                 }
 
-                didReqHandler.GetDidRequest(didId, function(err, isSuccess, msg, didReq){
-                    if(err || !isSuccess){
-                        jsonString = messageFormatter.FormatMessage(err, msg, isSuccess, undefined);
+                var options = {
+                    method: 'GET',
+                    uri: voxboneUrl + '/configuration/pop',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': apiKey
+                    }
+                };
+                request(options, function (error, response, body) {
+                    if (error) {
+                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                        logger.error('[DVP-Voxbone.ConfigureDid.ListPOP] - [%s] - [%s] - Error.', response, body, error);
                         callback.end(jsonString);
-                    }else{
-                        didReqHandler.EnableCapacity(didReq.Tenant, didReq.Company, didId, activeCapacity, didEnabled, function(err, isSuccess, msg){
+                    } else {
+                        logger.info('[DVP-Voxbone.ConfigureDid.ListPOP] - [%s] - - [%s]', response, body);
+                        if (response.statusCode != 200) {
+                            jsonResp = JSON.parse(body);
+                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                            callback.end(jsonString);
+                        }
+
+                        var pops = JSON.parse(body).pops;
+
+                        var deliveryId = null;
+                        if(pops && pops.length > 0) {
+                            if (didToConfig.delivery) {
+                                for (var i = 0; i < pops.length; i++) {
+                                    if (pops[i].name === didToConfig.delivery) {
+                                        deliveryId = pops[i].deliveryId;
+                                        break;
+                                    }
+                                }
+                            } else {
+                                if (pops[0]) {
+                                    deliveryId = pops[0].deliveryId;
+                                }
+                            }
+                        }
+
+
+                        didReqHandler.GetDidRequest(didId, function(err, isSuccess, msg, didReq){
                             if(err || !isSuccess){
                                 jsonString = messageFormatter.FormatMessage(err, msg, isSuccess, undefined);
                                 callback.end(jsonString);
                             }else{
-                                trunkHandler.SetLimitToNumber(didReq.Company, didReq.Tenant, didToConfig.e164, activeCapacity, function(err, response, body){
-                                    if(err || response.statusCode !== 200 || !body.IsSuccess || !body.Result){
-                                        jsonString = messageFormatter.FormatMessage(undefined, "Set channel limit to number failed", false, undefined);
+                                didReqHandler.EnableCapacity(didReq.Tenant, didReq.Company, didId, activeCapacity, didEnabled, function(err, isSuccess, msg){
+                                    if(err || !isSuccess){
+                                        jsonString = messageFormatter.FormatMessage(err, msg, isSuccess, undefined);
                                         callback.end(jsonString);
                                     }else{
-                                        didToConfig.trunkId = didReq.TrunkId;
-                                        didToConfig.limitChannels = activeCapacity.toString();
-
-                                        var options = {
-                                            method: 'POST',
-                                            uri: voxboneUrl + '/configuration',
-                                            headers: {
-                                                'Content-Type': 'application/json',
-                                                'Accept': 'application/json',
-                                                'Authorization': apiKey
-                                            },
-                                            body: JSON.stringify(didToConfig)
-                                        };
-
-                                        request(options, function (error, response, body) {
-                                            if (error) {
-                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                                                logger.error('[DVP-Voxbone.Did.configuration] - [%s] - [%s] - Error.', response, body, error);
+                                        trunkHandler.SetLimitToNumber(didReq.Company, didReq.Tenant, phoneNumber, activeCapacity, function(err, response, body){
+                                            if(err || response.statusCode !== 200 || !body.IsSuccess || !body.Result){
+                                                jsonString = messageFormatter.FormatMessage(undefined, "Set channel limit to number failed", false, undefined);
                                                 callback.end(jsonString);
-                                            } else {
-                                                logger.info('[DVP-Voxbone.Did.configuration] - [%s] - - [%s]', response, body);
-                                                jsonResp = JSON.parse(body);
-                                                if (response.statusCode != 200 || jsonResp.status != "SUCCESS") {
+                                            }else{
 
-                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
-                                                    callback.end(jsonString);
-                                                }else{
-                                                    jsonString = messageFormatter.FormatMessage(undefined, "DID Configuration Done", true, undefined);
-                                                    callback.end(jsonString);
-                                                }
+                                                var didConfig = {
+                                                    didIds : [didToConfig.didId],
+                                                    voiceUriId : didToConfig.voiceUriId,
+                                                    smsLinkGroupId : didToConfig.smsLinkGroupId?didToConfig.smsLinkGroupId.toString():null,
+                                                    faxUriId : didToConfig.faxUriId,
+                                                    capacityGroupId : didToConfig.capacityGroupId?didToConfig.capacityGroupId.toString():null,
+                                                    trunkId : didReq.TrunkId?didReq.TrunkId.toString():didToConfig.trunkId,
+                                                    deliveryId : deliveryId,
+                                                    srvLookup : didToConfig.srvLookup,
+                                                    callerId : didToConfig.callerId,
+                                                    peer : didToConfig.otherOptions,
+                                                    ringback : didToConfig.ringback,
+                                                    dnisEnabled : didToConfig.dnisEnabled,
+                                                    limitChannels : activeCapacity?activeCapacity.toString():"0"
+                                                };
+
+                                                var options = {
+                                                    method: 'POST',
+                                                    uri: voxboneUrl + '/configuration/configuration',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'Accept': 'application/json',
+                                                        'Authorization': apiKey
+                                                    },
+                                                    body: JSON.stringify(didConfig)
+                                                };
+
+                                                request(options, function (error, response, body) {
+                                                    if (error) {
+                                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                        logger.error('[DVP-Voxbone.Did.configuration] - [%s] - [%s] - Error.', response, body, error);
+                                                        callback.end(jsonString);
+                                                    } else {
+                                                        logger.info('[DVP-Voxbone.Did.configuration] - [%s] - - [%s]', response, body);
+                                                        jsonResp = JSON.parse(body);
+                                                        if (response.statusCode != 200 || jsonResp.status != "SUCCESS") {
+
+                                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                                                            callback.end(jsonString);
+                                                        }else{
+                                                            jsonString = messageFormatter.FormatMessage(undefined, "DID Configuration Done", true, undefined);
+                                                            callback.end(jsonString);
+                                                        }
+                                                    }
+                                                });
                                             }
                                         });
                                     }
                                 });
                             }
                         });
+
+
+
                     }
                 });
+
             }else{
                 jsonString = messageFormatter.FormatMessage(undefined, "No DID Found", false, undefined);
                 callback.end(jsonString);
@@ -456,3 +518,4 @@ module.exports.OrderDids = OrderDids;
 module.exports.ListCountries = ListCountries;
 module.exports.ListDIDGroup = ListDIDGroup;
 module.exports.ListDIDGroupByDidType = ListDIDGroupByDidType;
+module.exports.ConfigureDid = ConfigureDid;
