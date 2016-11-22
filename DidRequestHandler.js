@@ -109,7 +109,7 @@ var EnableCapacity = function(tenant, company, didId, enabledCapacity, didEnable
 
 var SetTrunk = function(tenant, company, orderDetails, trunkId, callback){
     try{
-        dbConn.VoxboneDIDRequest.find({where: [{Company: company},{Tenant: tenant},{DidId: orderDetails.didId}]})
+        dbConn.VoxboneDIDRequest.find({where: [{Company: company},{Tenant: tenant},{DidId: orderDetails.didId.toString()}]})
             .then(function (didRequest)
             {
 
@@ -187,7 +187,7 @@ var SetRequestStatus = function(tenant, company, didId, status, callback){
 
 var GetDidRequest = function(didId, callback){
     try{
-        dbConn.VoxboneDIDRequest.findOne({where: [{DidId: didId}]})
+        dbConn.VoxboneDIDRequest.find({where: [{DidId: didId}]})
             .then(function (didRequest)
             {
 
@@ -220,7 +220,7 @@ var GetDidRequest = function(didId, callback){
 
 var GetAllDidRequest = function(callback){
     try{
-        dbConn.VoxboneDIDRequest.find({})
+        dbConn.VoxboneDIDRequest.findAll({})
             .then(function (didRequest)
             {
 
@@ -253,7 +253,7 @@ var GetAllDidRequest = function(callback){
 
 var GetAllDidRequestByStatus = function(status, callback){
     try{
-        dbConn.VoxboneDIDRequest.find({where: [{RequestStatus: status}]})
+        dbConn.VoxboneDIDRequest.findAll({where: [{RequestStatus: status}]})
             .then(function (didRequest)
             {
 

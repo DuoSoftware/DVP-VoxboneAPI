@@ -39,7 +39,7 @@ module.exports = {
         "trunkServiceHost": "phonenumbertrunkservice.app.veery.cloud",
         "trunkServicePort":9898 ,
         "trunkServiceVersion": "1.0.0.0",
-        "voxboneUrl": "https://api.voxbone.com/ws-voxbone/services/rest"
+        "voxboneUrl": "https://sandbox.voxbone.com/ws-voxbone/services/rest"
 
     }
 };
