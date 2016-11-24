@@ -22,7 +22,6 @@ var RestServer = restify.createServer({
 }, function (req, res) {
 
 });
-restify.CORS.ALLOW_HEADERS.push('api_key');
 restify.CORS.ALLOW_HEADERS.push('authorization');
 
 RestServer.use(restify.CORS());
