@@ -29,7 +29,7 @@ function ListDIDGroupByDidType(apiKey, callBack, countryCodeA3, didType, pageNum
     inventoryHandler.ListDIDGroupBydidType(voxboneUrl, apiKey, callBack, countryCodeA3, didType, pageNumber, pageSize);
 }
 
-function OrderDids(req, apiKey, callBack, customerReference, description, didGroupId, quantity, capacity, countryCodeA3) {
+function OrderDids(req, apiKey, callBack, customerReference, description, didGroupId, quantity, capacity, countryCodeA3, setupFee, monthlyFee) {
 
     var jsonString = "";
     var jsonResp = "";
@@ -244,7 +244,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                             }
 
 
-                                                            didReqHandler.AddVoxDidRequest(tenant, company, dids[0], capacity, setup100, monthly100, function(err, isSuccess, msg){
+                                                            didReqHandler.AddVoxDidRequest(tenant, company, dids[0], capacity, setupFee, monthlyFee, function(err, isSuccess, msg){
                                                                 lastMessage = msg;
                                                                 lastStatus = isSuccess;
                                                                 if(err || !isSuccess){
