@@ -39,6 +39,12 @@ module.exports = {
         "trunkServiceHost": "phonenumbertrunkservice.app.veery.cloud",
         "trunkServicePort":9898 ,
         "trunkServiceVersion": "1.0.0.0",
+        "billingserviceHost": "192.168.5.188",
+        "billingservicePort": "4444",
+        "billingserviceVersion": "1.0.0.0",
+        "walletserviceHost": "192.168.0.39",
+        "walletservicePort": "3333",
+        "walletserviceVersion": "1.0.0.0",
         "voxboneUrl": "https://sandbox.voxbone.com/ws-voxbone/services/rest"
 
     }

@@ -24,7 +24,13 @@ module.exports = {
         "trunkServiceHost": "SYS_PHONENUMBERSERVICE_HOST",
         "trunkServicePort": "SYS_PHONENUMBERSERVICE_PORT",
         "trunkServiceVersion": "SYS_PHONENUMBERSERVICE_VERSION",
-        "voxboneUrl":"VOXBONE_URL",
+        "billingserviceHost": "SYS_BILLING_HOST",
+        "billingservicePort": "SYS_BILLING_PORT",
+        "billingserviceVersion": "SYS_BILLING_VERSION",
+        "walletserviceHost": "SYS_WALLET_HOST",
+        "walletservicePort": "SYS_WALLET_PORT",
+        "walletserviceVersion": "SYS_WALLET_VERSION",
+        "voxboneUrl":"VOXBONE_URL"
     },"Security":
     {
         "ip": "SYS_REDIS_HOST",
