@@ -17,6 +17,7 @@ var trunkHandler = require('./TrunkHandler');
 var validator = require('validator');
 var util = require('util');
 var restClientHandler = require('./RestClient');
+var Org = require('dvp-mongomodels/model/Organisation');
 
 var voxboneUrl = config.Services.voxboneUrl;
 
@@ -37,350 +38,376 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
     var jsonString = "";
     var jsonResp = "";
 
-    var options = {
-        method: 'PUT',
-        uri: voxboneUrl + '/ordering/cart',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': apiKey
-        },
-        body: '{"customerReference" : "' + customerReference + '","description" : "' + description + '"}'
-    };
 
-    request(options, function (error, response, body) { // Create Cart
+    var tenant = parseInt(req.user.tenant);
+    var company = parseInt(req.user.company);
 
-        if (error) {
-            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-            logger.error('[DVP-Voxbone.CreateCart] - [%s] - [%s] - Error.', response, body, error);
-            callBack.end(jsonString);
+    Org.findOne({tenant: tenant, id: company}).populate('ownerRef' , '-password').exec( function (err, org) {
+
+        if (err) {
+
+            jsonString = messageFormatter.FormatMessage(err, "Find Organisation Failed", false, undefined);
+            res.end(jsonString);
+
         } else {
-            logger.info('[DVP-Voxbone.CreateCart] - [%s] - - [%s]', response, body);
-            jsonResp = JSON.parse(body);
-            if (response.statusCode != 200) {
 
-                jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
-                callBack.end(jsonString);
-                return;
-            }
+            if (org) {
 
-            var cartIdentifier = jsonResp.cart.cartIdentifier;
-            var options = {
-                method: 'POST',
-                uri: voxboneUrl + '/ordering/cart/' + cartIdentifier + '/product',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': apiKey
-                },
-                body: '{"didCartItem" : {"didGroupId" : "' + didGroupId + '", "quantity" : "' + quantity + '"}}'
-            };
+                var options = {
+                    method: 'PUT',
+                    uri: voxboneUrl + '/ordering/cart',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': apiKey
+                    },
+                    body: '{"customerReference" : "' + customerReference + '","description" : "' + description + '"}'
+                };
 
-            request(options, function (error, response, body) { //Add to Cart
-                if (error) {
-                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                    logger.error('[DVP-Voxbone.CreateCart.AddToCart] - [%s] - [%s] - Error.', response, body, error);
-                    callBack.end(jsonString);
-                    return;
-                } else {
-                    logger.info('[DVP-Voxbone.CreateCart.AddToCart] - [%s] - - [%s]', response, body);
-                    jsonResp = JSON.parse(body);
-                    if (response.statusCode != 200 || jsonResp.status != "SUCCESS") {
+                request(options, function (error, response, body) { // Create Cart
 
-                        jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                    if (error) {
+                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                        logger.error('[DVP-Voxbone.CreateCart] - [%s] - [%s] - Error.', response, body, error);
                         callBack.end(jsonString);
-                    }
+                    } else {
+                        logger.info('[DVP-Voxbone.CreateCart] - [%s] - - [%s]', response, body);
+                        jsonResp = JSON.parse(body);
+                        if (response.statusCode != 200) {
 
-                    //-------------------Check Account Funds------------------------------------------------------
-
-                    var options = {
-                        method: 'GET',
-
-                        uri: voxboneUrl + '/inventory/didgroup?countryCodeA3='+countryCodeA3+'&didGroupIds='+didGroupId+'&pageNumber=0&pageSize=10', //Query string data
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'Authorization': apiKey
-                        }
-                    };
-
-                    request(options, function (error, response, body) { //Checkout cart
-                        if (error) {
-                            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                            logger.error('[DVP-Voxbone.CreateCart.didgroup.getPrice] - [%s] - [%s] - Error.', response, body, error);
+                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
                             callBack.end(jsonString);
-                        } else {
-                            logger.info('[DVP-Voxbone.CreateCart.didgroup.getPrice] - [%s] - - [%s]', response, body);
-                            jsonResp = JSON.parse(body);
-                            if (response.statusCode != 200 || jsonResp.resultCount <= 0) {
+                            return;
+                        }
 
-                                jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
+                        var cartIdentifier = jsonResp.cart.cartIdentifier;
+                        var options = {
+                            method: 'POST',
+                            uri: voxboneUrl + '/ordering/cart/' + cartIdentifier + '/product',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'Authorization': apiKey
+                            },
+                            body: '{"didCartItem" : {"didGroupId" : "' + didGroupId + '", "quantity" : "' + quantity + '"}}'
+                        };
+
+                        request(options, function (error, response, body) { //Add to Cart
+                            if (error) {
+                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                logger.error('[DVP-Voxbone.CreateCart.AddToCart] - [%s] - [%s] - Error.', response, body, error);
                                 callBack.end(jsonString);
                                 return;
-                            }
+                            } else {
+                                logger.info('[DVP-Voxbone.CreateCart.AddToCart] - [%s] - - [%s]', response, body);
+                                jsonResp = JSON.parse(body);
+                                if (response.statusCode != 200 || jsonResp.status != "SUCCESS") {
 
-                            var didGroupInfo = jsonResp.didGroups[0];
-                            var setup100 = parseInt(didGroupInfo.setup100);
-                            var monthly100 = parseInt(didGroupInfo.monthly100);
-
-                            var cartValue = (setup100+monthly100)*quantity;
-
-
-
-
-                            var options = {
-                                method: 'GET',
-
-                                uri: voxboneUrl + '/ordering/accountbalance', //Query string data
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'Authorization': apiKey
-                                }
-                            };
-
-                            request(options, function (error, response, body) { //Checkout cart
-                                if (error) {
-                                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                                    logger.error('[DVP-Voxbone.CreateCart.AddToCart.accountbalance] - [%s] - [%s] - Error.', response, body, error);
+                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
                                     callBack.end(jsonString);
-                                } else {
-                                    logger.info('[DVP-Voxbone.CreateCart.AddToCart.accountbalance] - [%s] - - [%s]', response, body);
-                                    jsonResp = JSON.parse(body);
-                                    if (response.statusCode != 200) {// || jsonResp.accountBalance.active === false
+                                }
 
-                                        jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
-                                        callBack.end(jsonString);
-                                        return;
+                                //-------------------Check Account Funds------------------------------------------------------
+
+                                var options = {
+                                    method: 'GET',
+
+                                    uri: voxboneUrl + '/inventory/didgroup?countryCodeA3='+countryCodeA3+'&didGroupIds='+didGroupId+'&pageNumber=0&pageSize=10', //Query string data
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'Authorization': apiKey
                                     }
+                                };
+
+                                request(options, function (error, response, body) { //Checkout cart
+                                    if (error) {
+                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                        logger.error('[DVP-Voxbone.CreateCart.didgroup.getPrice] - [%s] - [%s] - Error.', response, body, error);
+                                        callBack.end(jsonString);
+                                    } else {
+                                        logger.info('[DVP-Voxbone.CreateCart.didgroup.getPrice] - [%s] - - [%s]', response, body);
+                                        jsonResp = JSON.parse(body);
+                                        if (response.statusCode != 200 || jsonResp.resultCount <= 0) {
+
+                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
+                                            callBack.end(jsonString);
+                                            return;
+                                        }
+
+                                        var didGroupInfo = jsonResp.didGroups[0];
+                                        var setup100 = parseInt(didGroupInfo.setup100);
+                                        var monthly100 = parseInt(didGroupInfo.monthly100);
+
+                                        var cartValue = (setup100+monthly100)*quantity;
 
 
-                                    var accBalance = jsonResp.accountBalance.balance * 100;
-
-                                    if(accBalance > cartValue){
 
 
-                                        var tenant = parseInt(req.user.tenant);
-                                        var company = parseInt(req.user.company);
+                                        var options = {
+                                            method: 'GET',
 
-                                        CheckCredit(company, tenant, function(err, response){
-                                            if(err){
-                                                jsonString = messageFormatter.FormatMessage(err, "Error in Check User Credits", false, undefined);
-                                                res.end(jsonString);
-                                            }else{
-                                                if(response) {
-                                                    if(response.IsSuccess) {
+                                            uri: voxboneUrl + '/ordering/accountbalance', //Query string data
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Accept': 'application/json',
+                                                'Authorization': apiKey
+                                            }
+                                        };
 
-                                                        if(response.Result){
-                                                            var numberPrice = (setupFee + monthlyFee)*100;
-                                                            var availableCredit = parseFloat(response.Result.Credit);
-                                                            if(availableCredit >= numberPrice){
+                                        request(options, function (error, response, body) { //Checkout cart
+                                            if (error) {
+                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                logger.error('[DVP-Voxbone.CreateCart.AddToCart.accountbalance] - [%s] - [%s] - Error.', response, body, error);
+                                                callBack.end(jsonString);
+                                            } else {
+                                                logger.info('[DVP-Voxbone.CreateCart.AddToCart.accountbalance] - [%s] - - [%s]', response, body);
+                                                jsonResp = JSON.parse(body);
+                                                if (response.statusCode != 200) {// || jsonResp.accountBalance.active === false
 
-                                                                var options = {
-                                                                    method: 'GET',
+                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
+                                                    callBack.end(jsonString);
+                                                    return;
+                                                }
 
-                                                                    uri: voxboneUrl + '/ordering/cart/' + cartIdentifier + '/checkout?cartIdentifier=' + cartIdentifier, //Query string data
-                                                                    headers: {
-                                                                        'Content-Type': 'application/json',
-                                                                        'Accept': 'application/json',
-                                                                        'Authorization': apiKey
-                                                                    }
-                                                                };
 
-                                                                request(options, function (error, response, body) { //Checkout cart
-                                                                    if (error) {
-                                                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                                                                        logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart] - [%s] - [%s] - Error.', response, body, error);
-                                                                        callBack.end(jsonString);
-                                                                    } else {
-                                                                        logger.info('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart] - [%s] - - [%s]', response, body);
-                                                                        jsonResp = JSON.parse(body);
-                                                                        if (response.statusCode != 200 || jsonResp.status != "SUCCESS") {
+                                                var accBalance = jsonResp.accountBalance.balance * 100;
 
-                                                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
-                                                                            callBack.end(jsonString);
-                                                                            return;
-                                                                        }
+                                                if(accBalance > cartValue){
 
-                                                                        var oderInfo = JSON.parse(body);
-                                                                        if (oderInfo.status === "SUCCESS") {
 
-                                                                            var date = moment().add(-1, 'hours').format("YYYY-MM-DD HH:MM:SS");
+
+                                                    CheckCredit(company, tenant, function(err, response){
+                                                        if(err){
+                                                            jsonString = messageFormatter.FormatMessage(err, "Error in Check User Credits", false, undefined);
+                                                            res.end(jsonString);
+                                                        }else{
+                                                            if(response) {
+                                                                if(response.IsSuccess) {
+
+                                                                    if(response.Result){
+                                                                        var numberPrice = (setupFee + monthlyFee)*100;
+                                                                        var availableCredit = parseFloat(response.Result.Credit);
+                                                                        if(availableCredit >= numberPrice){
+
                                                                             var options = {
-                                                                                method: 'GET',//'/ordering/order?pageNumber=0&pageSize=1&reference='+oderInfo.productCheckoutList[0].orderReference,
-                                                                                uri: voxboneUrl + '/inventory/did?orderReference=' + oderInfo.productCheckoutList[0].orderReference + '&dateFrom=' + date + '&status=' + "FULFILLED" + '&pageNumber=0&pageSize=100', //Query string data
+                                                                                method: 'GET',
+
+                                                                                uri: voxboneUrl + '/ordering/cart/' + cartIdentifier + '/checkout?cartIdentifier=' + cartIdentifier, //Query string data
                                                                                 headers: {
                                                                                     'Content-Type': 'application/json',
                                                                                     'Accept': 'application/json',
                                                                                     'Authorization': apiKey
                                                                                 }
                                                                             };
-                                                                            request(options, function (error, response, body) {
+
+                                                                            request(options, function (error, response, body) { //Checkout cart
                                                                                 if (error) {
                                                                                     jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                                                                                    logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - [%s] - Error.', response, body, error);
+                                                                                    logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart] - [%s] - [%s] - Error.', response, body, error);
                                                                                     callBack.end(jsonString);
                                                                                 } else {
-                                                                                    logger.info('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - - [%s]', response, body);
-                                                                                    if (response.statusCode != 200) {
-                                                                                        jsonResp = JSON.parse(body);
-                                                                                        jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                                                                                    logger.info('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart] - [%s] - - [%s]', response, body);
+                                                                                    jsonResp = JSON.parse(body);
+                                                                                    if (response.statusCode != 200 || jsonResp.status != "SUCCESS") {
+
+                                                                                        jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
                                                                                         callBack.end(jsonString);
                                                                                         return;
                                                                                     }
 
-                                                                                    var dids = JSON.parse(body).dids;
-                                                                                    var arrayFound = dids.filter(function (item) {
-                                                                                        return item.orderReference === oderInfo.productCheckoutList[0].orderReference;
-                                                                                    });
+                                                                                    var oderInfo = JSON.parse(body);
+                                                                                    if (oderInfo.status === "SUCCESS") {
 
-                                                                                    /*if (Array.isArray(arrayFound)) {
-                                                                                     var channelData = {
-                                                                                     VoxOderId: '73929DS1404188',//oderInfo.productCheckoutList[0].orderReference,
-                                                                                     VoxStatus: 'SUCCESS',
-                                                                                     Dids: arrayFound.map(function (obj) {
-                                                                                     return obj.e164
-                                                                                     }),
-                                                                                     OtherJsonData: oderInfo
-                                                                                     };
-                                                                                     var companyData = {
-                                                                                     TenantId: req.user.tenant,
-                                                                                     CompanyId: req.user.company
-                                                                                     };
-                                                                                     //SaveOder(channelData, companyData);
-                                                                                     //SaveOder(channelData, companyData);
-                                                                                     }*/
+                                                                                        var date = moment().add(-1, 'hours').format("YYYY-MM-DD HH:MM:SS");
+                                                                                        var options = {
+                                                                                            method: 'GET',//'/ordering/order?pageNumber=0&pageSize=1&reference='+oderInfo.productCheckoutList[0].orderReference,
+                                                                                            uri: voxboneUrl + '/inventory/did?orderReference=' + oderInfo.productCheckoutList[0].orderReference + '&dateFrom=' + date + '&status=' + "FULFILLED" + '&pageNumber=0&pageSize=100', //Query string data
+                                                                                            headers: {
+                                                                                                'Content-Type': 'application/json',
+                                                                                                'Accept': 'application/json',
+                                                                                                'Authorization': apiKey
+                                                                                            }
+                                                                                        };
+                                                                                        request(options, function (error, response, body) {
+                                                                                            if (error) {
+                                                                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                                                                logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - [%s] - Error.', response, body, error);
+                                                                                                callBack.end(jsonString);
+                                                                                            } else {
+                                                                                                logger.info('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - - [%s]', response, body);
+                                                                                                if (response.statusCode != 200) {
+                                                                                                    jsonResp = JSON.parse(body);
+                                                                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                                                                                                    callBack.end(jsonString);
+                                                                                                    return;
+                                                                                                }
 
-                                                                                    var lastMessage;
-                                                                                    var lastStatus;
+                                                                                                var dids = JSON.parse(body).dids;
+                                                                                                var arrayFound = dids.filter(function (item) {
+                                                                                                    return item.orderReference === oderInfo.productCheckoutList[0].orderReference;
+                                                                                                });
 
-                                                                                    if(dids[0].e164.indexOf('+') > -1){
-                                                                                        dids[0].e164 = dids[0].e164.replace('+', '');
+                                                                                                /*if (Array.isArray(arrayFound)) {
+                                                                                                 var channelData = {
+                                                                                                 VoxOderId: '73929DS1404188',//oderInfo.productCheckoutList[0].orderReference,
+                                                                                                 VoxStatus: 'SUCCESS',
+                                                                                                 Dids: arrayFound.map(function (obj) {
+                                                                                                 return obj.e164
+                                                                                                 }),
+                                                                                                 OtherJsonData: oderInfo
+                                                                                                 };
+                                                                                                 var companyData = {
+                                                                                                 TenantId: req.user.tenant,
+                                                                                                 CompanyId: req.user.company
+                                                                                                 };
+                                                                                                 //SaveOder(channelData, companyData);
+                                                                                                 //SaveOder(channelData, companyData);
+                                                                                                 }*/
+
+                                                                                                var lastMessage;
+                                                                                                var lastStatus;
+
+                                                                                                if(dids[0].e164.indexOf('+') > -1){
+                                                                                                    dids[0].e164 = dids[0].e164.replace('+', '');
+                                                                                                }
+
+                                                                                                var billingObj = {
+                                                                                                    companyInfo: org,
+                                                                                                    name: dids[0].e164,
+                                                                                                    type: "PHONE_NUMBER",
+                                                                                                    category: "DID",
+                                                                                                    setupFee: setupFee,
+                                                                                                    unitPrice: monthlyFee,
+                                                                                                    units: 1,
+                                                                                                    description: 'Number set-up fee and monthly fee',
+                                                                                                    date: Date.now(),
+                                                                                                    valid: true,
+                                                                                                    isTrial: false
+                                                                                                };
+
+                                                                                                RequestToBill(company, tenant, billingObj, function(err, response){
+                                                                                                    if(err){
+                                                                                                        jsonString = messageFormatter.FormatMessage(err, "Error in Billing request", false, undefined);
+                                                                                                        res.end(jsonString);
+                                                                                                    }else{
+                                                                                                        if(response) {
+                                                                                                            if(response.IsSuccess) {
+
+                                                                                                                didReqHandler.AddVoxDidRequest(tenant, company, dids[0], capacity, setupFee*100, monthlyFee*100, function(err, isSuccess, msg){
+                                                                                                                    lastMessage = msg;
+                                                                                                                    lastStatus = isSuccess;
+                                                                                                                    if(err || !isSuccess){
+                                                                                                                        jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
+                                                                                                                        callBack.end(jsonString);
+                                                                                                                    }else{
+                                                                                                                        trunkHandler.TrunkSetup(tenant, company, dids[0].e164, function(err, response, body){
+                                                                                                                            if(err || response.statusCode !== 200 || !body.IsSuccess || !body.Result){
+                                                                                                                                jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
+                                                                                                                                callBack.end(jsonString);
+                                                                                                                            }else{
+                                                                                                                                didReqHandler.SetTrunk(tenant, company, dids[0], body.Result.TrunkCode, function(err, isSuccess, msg){
+                                                                                                                                    if(err || !isSuccess){
+                                                                                                                                        jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
+                                                                                                                                        callBack.end(jsonString);
+                                                                                                                                    }else{
+                                                                                                                                        jsonString = messageFormatter.FormatMessage(undefined, msg, isSuccess, undefined);
+                                                                                                                                        callBack.end(jsonString);
+                                                                                                                                    }
+                                                                                                                                });
+                                                                                                                            }
+                                                                                                                        });
+                                                                                                                    }
+                                                                                                                });
+
+                                                                                                            }else{
+                                                                                                                jsonString = messageFormatter.FormatMessage(undefined, response.CustomMessage, false, undefined);
+                                                                                                                res.end(jsonString);
+                                                                                                            }
+                                                                                                        }else{
+                                                                                                            jsonString = messageFormatter.FormatMessage(err, "Error in Billing request", false, undefined);
+                                                                                                            res.end(jsonString);
+                                                                                                        }
+                                                                                                    }
+                                                                                                });
+
+
+
+                                                                                                //AssignVeeryTrunk(apiKey,arrayFound);
+                                                                                                //jsonString = messageFormatter.FormatMessage(undefined, "SUCCESS", true, body);
+                                                                                                //callBack.end(jsonString);
+                                                                                            }
+                                                                                        });
+                                                                                    }
+                                                                                    else {
+
+                                                                                        /*var oderInfo = JSON.parse(body);
+                                                                                         var channelData = {
+                                                                                         VoxOderId: cartIdentifier,
+                                                                                         VoxStatus: oderInfo.status,
+                                                                                         OtherJsonData: oderInfo
+                                                                                         };
+                                                                                         var companyData = {
+                                                                                         TenantId: req.user.tenant,
+                                                                                         CompanyId: req.user.company
+                                                                                         };
+                                                                                         //SaveOder(channelData, companyData);
+                                                                                         //SaveOder(channelData, companyData);*/
+
+                                                                                        jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "Please Contact System Administrator to Continue", false, body);
+                                                                                        callBack.end(jsonString);
                                                                                     }
 
-                                                                                    var billingObj = {
-                                                                                        name: dids[0].e164,
-                                                                                        type: "PHONE_NUMBER",
-                                                                                        category: "DID",
-                                                                                        setupFee: setupFee,
-                                                                                        unitPrice: monthlyFee,
-                                                                                        units: 1,
-                                                                                        description: 'Number set-up fee and monthly fee',
-                                                                                        date: Date.now(),
-                                                                                        valid: true,
-                                                                                        isTrial: false
-                                                                                    };
-
-                                                                                    RequestToBill(company, tenant, billingObj, function(err, response){
-                                                                                        if(err){
-                                                                                            jsonString = messageFormatter.FormatMessage(err, "Error in Billing request", false, undefined);
-                                                                                            res.end(jsonString);
-                                                                                        }else{
-                                                                                            if(response) {
-                                                                                                if(response.IsSuccess) {
-
-                                                                                                    didReqHandler.AddVoxDidRequest(tenant, company, dids[0], capacity, setupFee*100, monthlyFee*100, function(err, isSuccess, msg){
-                                                                                                        lastMessage = msg;
-                                                                                                        lastStatus = isSuccess;
-                                                                                                        if(err || !isSuccess){
-                                                                                                            jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
-                                                                                                            callBack.end(jsonString);
-                                                                                                        }else{
-                                                                                                            trunkHandler.TrunkSetup(tenant, company, dids[0].e164, function(err, response, body){
-                                                                                                                if(err || response.statusCode !== 200 || !body.IsSuccess || !body.Result){
-                                                                                                                    jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
-                                                                                                                    callBack.end(jsonString);
-                                                                                                                }else{
-                                                                                                                    didReqHandler.SetTrunk(tenant, company, dids[0], body.Result.TrunkCode, function(err, isSuccess, msg){
-                                                                                                                        if(err || !isSuccess){
-                                                                                                                            jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
-                                                                                                                            callBack.end(jsonString);
-                                                                                                                        }else{
-                                                                                                                            jsonString = messageFormatter.FormatMessage(undefined, msg, isSuccess, undefined);
-                                                                                                                            callBack.end(jsonString);
-                                                                                                                        }
-                                                                                                                    });
-                                                                                                                }
-                                                                                                            });
-                                                                                                        }
-                                                                                                    });
-
-                                                                                                }else{
-                                                                                                    jsonString = messageFormatter.FormatMessage(undefined, response.CustomMessage, false, undefined);
-                                                                                                    res.end(jsonString);
-                                                                                                }
-                                                                                            }else{
-                                                                                                jsonString = messageFormatter.FormatMessage(err, "Error in Billing request", false, undefined);
-                                                                                                res.end(jsonString);
-                                                                                            }
-                                                                                        }
-                                                                                    });
-
-
-
-                                                                                    //AssignVeeryTrunk(apiKey,arrayFound);
-                                                                                    //jsonString = messageFormatter.FormatMessage(undefined, "SUCCESS", true, body);
-                                                                                    //callBack.end(jsonString);
                                                                                 }
                                                                             });
+
+                                                                        }else{
+                                                                            jsonString = messageFormatter.FormatMessage(undefined, "Insufficient Balance, Please add some funds", false, undefined);
+                                                                            res.end(jsonString);
                                                                         }
-                                                                        else {
-
-                                                                            /*var oderInfo = JSON.parse(body);
-                                                                             var channelData = {
-                                                                             VoxOderId: cartIdentifier,
-                                                                             VoxStatus: oderInfo.status,
-                                                                             OtherJsonData: oderInfo
-                                                                             };
-                                                                             var companyData = {
-                                                                             TenantId: req.user.tenant,
-                                                                             CompanyId: req.user.company
-                                                                             };
-                                                                             //SaveOder(channelData, companyData);
-                                                                             //SaveOder(channelData, companyData);*/
-
-                                                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "Please Contact System Administrator to Continue", false, body);
-                                                                            callBack.end(jsonString);
-                                                                        }
-
+                                                                    }else{
+                                                                        jsonString = messageFormatter.FormatMessage(undefined, response.CustomMessage, false, undefined);
+                                                                        res.end(jsonString);
                                                                     }
-                                                                });
 
+                                                                }else{
+                                                                    jsonString = messageFormatter.FormatMessage(undefined, response.CustomMessage, false, undefined);
+                                                                    res.end(jsonString);
+                                                                }
                                                             }else{
-                                                                jsonString = messageFormatter.FormatMessage(undefined, "Insufficient Balance, Please add some funds", false, undefined);
+                                                                jsonString = messageFormatter.FormatMessage(err, "Error in Check User Credits", false, undefined);
                                                                 res.end(jsonString);
                                                             }
-                                                        }else{
-                                                            jsonString = messageFormatter.FormatMessage(undefined, response.CustomMessage, false, undefined);
-                                                            res.end(jsonString);
                                                         }
+                                                    });
 
-                                                    }else{
-                                                        jsonString = messageFormatter.FormatMessage(undefined, response.CustomMessage, false, undefined);
-                                                        res.end(jsonString);
-                                                    }
+
                                                 }else{
-                                                    jsonString = messageFormatter.FormatMessage(err, "Error in Check User Credits", false, undefined);
-                                                    res.end(jsonString);
+                                                    jsonString = messageFormatter.FormatMessage(new Error("Insufficient Founds"), "EXCEPTION", false, body);
+                                                    callBack.end(jsonString);
                                                 }
                                             }
                                         });
-
-
-                                    }else{
-                                        jsonString = messageFormatter.FormatMessage(new Error("Insufficient Founds"), "EXCEPTION", false, body);
-                                        callBack.end(jsonString);
                                     }
-                                }
-                            });
-                        }
-                    });
+                                });
 
 
-                }
-            });
+                            }
+                        });
+                    }
+                });
+
+            } else {
+
+                jsonString = messageFormatter.FormatMessage(err, "No Organisation Found", false, undefined);
+                res.end(jsonString);
+
+            }
+
         }
+
     });
+
 }
 
 function RequestToBill(company, tenant, billInfo, callback){

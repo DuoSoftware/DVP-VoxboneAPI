@@ -9,6 +9,7 @@
     "cors": "^2.7.1",
     "dvp-common": "^0.5.1",
     "dvp-dbmodels": "^0.5.8",
+    "dvp-mongomodels": "^3.8.4",
     "enum": "^2.3.0",
     "moment": "^2.15.2",
     "node": "^0.0.0",
