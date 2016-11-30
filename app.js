@@ -15,6 +15,28 @@ var inventoryHandler = require('./voxbone/InventoryHandler');
 var voxboneHandler = require('./VoxboneHandler');
 var didReqHandler = require('./DidRequestHandler');
 
+
+
+var mongoip=config.Mongo.ip;
+var mongoport=config.Mongo.port;
+var mongodb=config.Mongo.dbname;
+var mongouser=config.Mongo.user;
+var mongopass = config.Mongo.password;
+
+
+var port = config.Host.port || 3000;
+var host = config.Host.vdomain || 'localhost';
+
+
+var mongoose = require('mongoose');
+var util = require('util');
+var connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip,mongoport,mongodb)
+mongoose.connect(connectionstring);
+
+mongoose.connection.once('open', function() {
+    console.log("Connected to db");
+});
+
 //-------------------------  Restify Server ------------------------- \\
 var RestServer = restify.createServer({
     name: "VoxboneApi",
