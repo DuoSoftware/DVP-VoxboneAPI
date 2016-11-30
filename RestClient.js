@@ -11,7 +11,7 @@ var util = require('util');
 var config = require('config');
 var DoPost = function (companyInfo, serviceurl, postData, callback) {
     var jsonStr = JSON.stringify(postData);
-    var accessToken = 'bearer'+config.Services.authToken;
+    var accessToken = 'bearer '+config.Services.authToken;
     var options = {
         url: serviceurl,
         method: 'POST',
@@ -36,7 +36,7 @@ var DoPost = function (companyInfo, serviceurl, postData, callback) {
 };
 
 var DoGet = function (companyInfo, serviceurl, callback) {
-    var accessToken = 'bearer'+config.Services.authToken;
+    var accessToken = 'bearer '+config.Services.authToken;
     console.log('GetRequest:: %s', serviceurl);
     var options = {
         url: serviceurl,
