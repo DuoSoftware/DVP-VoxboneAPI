@@ -24,7 +24,7 @@ function TrunkSetup(tenant, company, phoneNumber, callback) {// if no outbound s
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': config.Services.authToken,
+            'Authorization': 'bearer '+config.Services.authToken,
             'companyinfo': '1:3'
         },
         body: data
@@ -58,7 +58,7 @@ function SetLimitToNumber(company, tenant, phoneNumber, limit, callback) {
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': config.Services.authToken,
+            'Authorization': 'bearer '+config.Services.authToken,
             'companyinfo': tenant+':'+company
         },
         body: data

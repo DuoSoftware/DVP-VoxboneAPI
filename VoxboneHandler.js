@@ -286,52 +286,58 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                                                                         isTrial: false
                                                                                                     };
 
-                                                                                                    RequestToBill(company, tenant, billingObj, function (err, response) {
-                                                                                                        if (err) {
-                                                                                                            jsonString = messageFormatter.FormatMessage(err, "Error in Billing request", false, undefined);
-                                                                                                            res.end(jsonString);
-                                                                                                        } else {
-                                                                                                            if (response) {
-                                                                                                                if (response.IsSuccess) {
+                                                                                                    var jsonString1;
+                                                                                                    try {
+                                                                                                        RequestToBill(company, tenant, billingObj, function (err, response) {
+                                                                                                            if (err) {
+                                                                                                                jsonString1 = messageFormatter.FormatMessage(err, "Error in Billing request", false, undefined);
+                                                                                                                console.log(jsonString1);
+                                                                                                            } else {
+                                                                                                                if (response) {
+                                                                                                                    if (response.IsSuccess) {
+                                                                                                                        jsonString1 = messageFormatter.FormatMessage(err, "Billing request success", false, undefined);
+                                                                                                                        console.log(jsonString1)
 
-                                                                                                                    didReqHandler.AddVoxDidRequest(tenant, company, dids[0], capacity, setupFee * 100, monthlyFee * 100, function (err, isSuccess, msg) {
-                                                                                                                        lastMessage = msg;
-                                                                                                                        lastStatus = isSuccess;
+                                                                                                                    } else {
+                                                                                                                        jsonString1 = messageFormatter.FormatMessage(undefined, response.CustomMessage, false, undefined);
+                                                                                                                        console.log(jsonString1);
+                                                                                                                    }
+                                                                                                                } else {
+                                                                                                                    jsonString1 = messageFormatter.FormatMessage(err, "Error in Billing request", false, undefined);
+                                                                                                                    console.log(jsonString1);
+                                                                                                                }
+                                                                                                            }
+                                                                                                        });
+                                                                                                    }catch(ex){
+                                                                                                        jsonString1 = messageFormatter.FormatMessage(ex, "Error in Billing request", false, undefined);
+                                                                                                        console.log(jsonString1);
+                                                                                                    }
+
+                                                                                                    didReqHandler.AddVoxDidRequest(tenant, company, dids[0], capacity, setupFee * 100, monthlyFee * 100, function (err, isSuccess, msg) {
+                                                                                                        lastMessage = msg;
+                                                                                                        lastStatus = isSuccess;
+                                                                                                        if (err || !isSuccess) {
+                                                                                                            jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
+                                                                                                            callBack.end(jsonString);
+                                                                                                        } else {
+                                                                                                            trunkHandler.TrunkSetup(tenant, company, dids[0].e164, function (err, response, body) {
+                                                                                                                if (err || response.statusCode !== 200 || !body.IsSuccess || !body.Result) {
+                                                                                                                    jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
+                                                                                                                    callBack.end(jsonString);
+                                                                                                                } else {
+                                                                                                                    didReqHandler.SetTrunk(tenant, company, dids[0], body.Result.TrunkCode, function (err, isSuccess, msg) {
                                                                                                                         if (err || !isSuccess) {
                                                                                                                             jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
                                                                                                                             callBack.end(jsonString);
                                                                                                                         } else {
-                                                                                                                            trunkHandler.TrunkSetup(tenant, company, dids[0].e164, function (err, response, body) {
-                                                                                                                                if (err || response.statusCode !== 200 || !body.IsSuccess || !body.Result) {
-                                                                                                                                    jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
-                                                                                                                                    callBack.end(jsonString);
-                                                                                                                                } else {
-                                                                                                                                    didReqHandler.SetTrunk(tenant, company, dids[0], body.Result.TrunkCode, function (err, isSuccess, msg) {
-                                                                                                                                        if (err || !isSuccess) {
-                                                                                                                                            jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
-                                                                                                                                            callBack.end(jsonString);
-                                                                                                                                        } else {
-                                                                                                                                            jsonString = messageFormatter.FormatMessage(undefined, msg, isSuccess, undefined);
-                                                                                                                                            callBack.end(jsonString);
-                                                                                                                                        }
-                                                                                                                                    });
-                                                                                                                                }
-                                                                                                                            });
+                                                                                                                            jsonString = messageFormatter.FormatMessage(undefined, msg, isSuccess, undefined);
+                                                                                                                            callBack.end(jsonString);
                                                                                                                         }
                                                                                                                     });
-
-                                                                                                                } else {
-                                                                                                                    jsonString = messageFormatter.FormatMessage(undefined, response.CustomMessage, false, undefined);
-                                                                                                                    res.end(jsonString);
                                                                                                                 }
-                                                                                                            } else {
-                                                                                                                jsonString = messageFormatter.FormatMessage(err, "Error in Billing request", false, undefined);
-                                                                                                                res.end(jsonString);
-                                                                                                            }
+                                                                                                            });
                                                                                                         }
                                                                                                     });
-
-
                                                                                                     //AssignVeeryTrunk(apiKey,arrayFound);
                                                                                                     //jsonString = messageFormatter.FormatMessage(undefined, "SUCCESS", true, body);
                                                                                                     //callBack.end(jsonString);
