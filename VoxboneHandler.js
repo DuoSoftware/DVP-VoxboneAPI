@@ -187,7 +187,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                                     CheckCredit(company, tenant, function (err, response) {
                                                                         if (err) {
                                                                             jsonString = messageFormatter.FormatMessage(err, "Error in Check User Credits", false, undefined);
-                                                                            res.end(jsonString);
+                                                                            callBack.end(jsonString);
                                                                         } else {
                                                                             if (response) {
                                                                                 if (response.IsSuccess) {
@@ -376,20 +376,20 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
 
                                                                                         } else {
                                                                                             jsonString = messageFormatter.FormatMessage(undefined, "Insufficient Balance, Please add some funds", false, undefined);
-                                                                                            res.end(jsonString);
+                                                                                            callBack.end(jsonString);
                                                                                         }
                                                                                     } else {
                                                                                         jsonString = messageFormatter.FormatMessage(undefined, response.CustomMessage, false, undefined);
-                                                                                        res.end(jsonString);
+                                                                                        callBack.end(jsonString);
                                                                                     }
 
                                                                                 } else {
                                                                                     jsonString = messageFormatter.FormatMessage(undefined, response.CustomMessage, false, undefined);
-                                                                                    res.end(jsonString);
+                                                                                    callBack.end(jsonString);
                                                                                 }
                                                                             } else {
                                                                                 jsonString = messageFormatter.FormatMessage(err, "Error in Check User Credits", false, undefined);
-                                                                                res.end(jsonString);
+                                                                                callBack.end(jsonString);
                                                                             }
                                                                         }
                                                                     });
@@ -413,7 +413,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                             } else {
 
                                 jsonString = messageFormatter.FormatMessage(err, "No Organisation Found", false, undefined);
-                                res.end(jsonString);
+                                callBack.end(jsonString);
 
                             }
 
@@ -422,14 +422,15 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                     });
                 }else{
                     jsonString = messageFormatter.FormatMessage(undefined, "No User Found.", false, undefined);
-                    res.end(jsonString);
+                    callBack.end(jsonString);
                 }
             }
         });
 
 
     }catch(ex){
-        console.log(ex);
+        jsonString = messageFormatter.FormatMessage(ex, "Error occurred.", false, undefined);
+        callBack.end(jsonString);
     }
 }
 
