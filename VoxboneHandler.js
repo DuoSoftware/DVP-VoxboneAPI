@@ -17,9 +17,8 @@ var trunkHandler = require('./TrunkHandler');
 var validator = require('validator');
 var util = require('util');
 var restClientHandler = require('./RestClient');
-var mongoose = require('mongoose');
 var Org = require('dvp-mongomodels/model/Organisation');
-var User = require('dvp-mongomodels/model/User');
+var UserAccount = require('dvp-mongomodels/model/UserAccount');
 
 var voxboneUrl = config.Services.voxboneUrl;
 
@@ -46,12 +45,13 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
 
     try {
 
-        User.findOne({tenant: tenant, company: company, username: req.user.iss}).select("-password").exec(function (err, rUser) {
+        UserAccount.findOne({tenant: tenant, company: company, user: req.user.iss}).populate('userref' , '-password').exec(function (err, rUser) {
             if (err) {
                 jsonString = messageFormatter.FormatMessage(err, "Error in User Search", false, undefined);
                 res.end(jsonString);
             } else {
                 if(rUser) {
+                    rUser = rUser.userref;
                     Org.findOne({tenant: tenant, id: company}).populate('ownerRef', '-password').exec(function (err, org) {
 
                         if (err) {
@@ -328,7 +328,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                                                                                         jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
                                                                                                                         callBack.end(jsonString);
                                                                                                                     } else {
-                                                                                                                        trunkHandler.TrunkSetup(tenant, company, dids[0].e164, function (err, response, body) {
+                                                                                                                        trunkHandler.TrunkSetup(tenant, company, dids[0].e164, dids[0].trunkId, function (err, response, body) {
                                                                                                                             if (err || response.statusCode !== 200 || !body.IsSuccess || !body.Result) {
                                                                                                                                 jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
                                                                                                                                 callBack.end(jsonString);

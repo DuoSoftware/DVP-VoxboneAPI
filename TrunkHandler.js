@@ -15,17 +15,16 @@ var limitUrl = format('http://{0}:{1}/DVP/API/{2}/', config.Services.limitServic
 var trunkUrl = format("http://{0}/DVP/API/{1}", config.Services.trunkServiceHost, config.Services.trunkServiceVersion);
 
 
-function TrunkSetup(tenant, company, phoneNumber, callback) {// if no outbound set to null
+function TrunkSetup(tenant, company, phoneNumber, truckCode, callback) {// if no outbound set to null
     //var jsonString;
     var data = '{ "PhoneNumber":"' + phoneNumber + '","ClientCompany":' + company+',"ClientTenant":' + tenant+'}';
     var options = {
         method: 'POST',
-        uri: trunkUrl + '/PhoneNumberTrunkApi/Operator/VOXBONE/TrunkNumber',
+        uri: trunkUrl + '/PhoneNumberTrunkApi/Operator/VOXBONE/TrunkNumber/'+truckCode,
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'bearer '+config.Services.authToken,
-            'companyinfo': '1:3'
+            'Authorization': 'bearer '+config.Services.authToken
         },
         body: data
     };
