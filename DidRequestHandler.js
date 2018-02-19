@@ -284,6 +284,47 @@ var GetAllDidRequestByStatus = function(status, callback){
     }
 };
 
+var GetAllDidRequestCounts = function(callback){
+    try{
+        var query = {
+            attributes: [
+                [dbConn.SequelizeConn.col("RequestStatus"), "RequestStatus"],
+                [dbConn.SequelizeConn.fn("COUNT", dbConn.SequelizeConn.col("DidId")), "Count"]
+            ],
+            group: ["RequestStatus"]
+        };
+
+        dbConn.VoxboneDIDRequest.findAll(query)
+            .then(function (didRequest)
+            {
+
+                if(didRequest)
+                {
+
+                    logger.info('[DVP-VoxboneAPI.GetAllDidRequestByStatus] PGSQL request query success');
+                    callback(undefined, true, "Get All DID Request Success", didRequest);
+
+
+
+                }
+                else
+                {
+                    logger.error('[DVP-VoxboneAPI.GetAllDidRequestByStatus] - PGSQL query failed');
+                    callback(undefined, false, "No DID Request Found", undefined);
+                }
+
+
+            }).catch(function(err)
+        {
+            logger.error('[DVP-VoxboneAPI.GetAllDidRequestByStatus] - PGSQL query failed', err);
+            callback(err, false, "Error in Get All DID Request", undefined);
+        });
+    }catch(ex){
+        logger.error('[DVP-VoxboneAPI.GetAllDidRequestByStatus] - PGSQL query failed', ex);
+        callback(ex, false, "Error in Get All DID Request", undefined);
+    }
+};
+
 
 module.exports.AddVoxDidRequest = AddVoxDidRequest;
 module.exports.EnableCapacity = EnableCapacity;
@@ -292,3 +333,4 @@ module.exports.SetRequestStatus = SetRequestStatus;
 module.exports.GetDidRequest = GetDidRequest;
 module.exports.GetAllDidRequest = GetAllDidRequest;
 module.exports.GetAllDidRequestByStatus = GetAllDidRequestByStatus;
+module.exports.GetAllDidRequestCounts = GetAllDidRequestCounts;

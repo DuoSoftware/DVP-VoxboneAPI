@@ -389,7 +389,7 @@ RestServer.put('/DVP/API/' + version + '/voxbone/order/ConfigDid', authorization
         logger.info('[DVP-voxbone.ConfigDid] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.body));
 
         var apiKey = config.Services.apiKey;
-        var vox = req.params;
+        var vox = req.body;
 
         voxboneHandler.ConfigureDid(apiKey, res, vox.DidId, vox.DidEnabled, vox.CapacityEnabled);
 
@@ -426,7 +426,7 @@ RestServer.get('/DVP/API/' + version + '/voxbone/order/DidRequest', authorizatio
     return next();
 });
 
-RestServer.get('/DVP/API/' + version + '/voxbone/order/DidRequest/:status', authorization({
+RestServer.get('/DVP/API/' + version + '/voxbone/order/DidRequest/status/:status', authorization({
     resource: "voxbone",
     action: "write"
 }), function (req, res, next) {
@@ -448,3 +448,29 @@ RestServer.get('/DVP/API/' + version + '/voxbone/order/DidRequest/:status', auth
     }
     return next();
 });
+
+RestServer.get('/DVP/API/' + version + '/voxbone/order/DidRequest/counts', authorization({
+    resource: "voxbone",
+    action: "read"
+}), function (req, res, next) {
+    try {
+        logger.info('[DVP-voxbone.order.GetAllDidRequestCounts] - [HTTP]  - Request received');
+
+
+        didReqHandler.GetAllDidRequestCounts(function(err, isSuccess, msg, obj){
+            var jsonString = messageFormatter.FormatMessage(err, msg, isSuccess, obj);
+            res.end(jsonString);
+        });
+
+    }
+    catch (ex) {
+
+        logger.error('[DVP-voxbone.order.GetAllDidRequestCounts] - [HTTP]  - Exception occurred:: %s', ex);
+        var jsonString = messageFormatter.FormatMessage(ex, "EXCEPTION", false, undefined);
+        res.end(jsonString);
+    }
+    return next();
+});
+
+
+
