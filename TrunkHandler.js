@@ -13,6 +13,7 @@ var dom = require('xmldom').DOMParser;
 
 var limitUrl = format('http://{0}:{1}/DVP/API/{2}/', config.Services.limitServiceHost, config.Services.limitServicePort, config.Services.limitServiceVersion);
 var trunkUrl = format("http://{0}/DVP/API/{1}", config.Services.trunkServiceHost, config.Services.trunkServiceVersion);
+var ruleUrl = format("http://{0}/DVP/API/{1}/CallRuleApi/CallRule", config.Services.ruleServiceHost, config.Services.ruleServiceVersion);
 
 
 function TrunkSetup(tenant, company, phoneNumber, truckCode, callback) {// if no outbound set to null
@@ -80,6 +81,31 @@ function SetLimitToNumber(company, tenant, phoneNumber, limit, callback) {
     });
 }
 
+function CreateDefaultRuleInbound(company, tenant, phoneNumber) {
+
+    var data = {ANI:null, ANIRegExPattern:"ANY", CallRuleDescription:"Inbound Rule " + phoneNumber, Context:"ANY", DNIS:phoneNumber, Direction:"INBOUND", Enable:true, ObjCategory:"CALL", Priority:1, RegExPattern:"STARTWITH", TrunkNumber:null};
+    var options = {
+        method: 'POST',
+        uri: ruleUrl,
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'bearer '+config.Services.authToken,
+            'companyinfo': tenant+':'+company
+        },
+        body: JSON.stringify(data)
+    };
+    request(options, function (error, response, body) {
+        if (error) {
+            logger.error('[DVP-Voxbone.CreateDefaultRuleInbound] - [%s] - [%s] - Error.', response, body, error);
+        }
+    });
+}
+
+
+
+
 
 module.exports.TrunkSetup = TrunkSetup;
 module.exports.SetLimitToNumber = SetLimitToNumber;
+module.exports.CreateDefaultRuleInbound = CreateDefaultRuleInbound;

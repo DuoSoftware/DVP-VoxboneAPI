@@ -562,6 +562,7 @@ function ConfigureDid(apiKey, callback, didId, didEnabled, activeCapacity){
                                         jsonString = messageFormatter.FormatMessage(err, msg, isSuccess, undefined);
                                         callback.end(jsonString);
                                     }else{
+                                        trunkHandler.CreateDefaultRuleInbound(didReq.Company, didReq.Tenant, phoneNumber);
                                         trunkHandler.SetLimitToNumber(didReq.Company, didReq.Tenant, phoneNumber, activeCapacity, function(err, response, body){
                                             if(err || response.statusCode !== 200 || !body.IsSuccess || !body.Result){
                                                 jsonString = messageFormatter.FormatMessage(undefined, "Set channel limit to number failed", false, undefined);
