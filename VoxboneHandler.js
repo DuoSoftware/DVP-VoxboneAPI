@@ -77,7 +77,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                 request(options, function (error, response, body) { // Create Cart
 
                                     if (error) {
-                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION - Ordering Cart", false, undefined);
                                         logger.error('[DVP-Voxbone.CreateCart] - [%s] - [%s] - Error.', response, body, error);
                                         callBack.end(jsonString);
                                     } else {
@@ -85,7 +85,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                         jsonResp = JSON.parse(body);
                                         if (response.statusCode != 200) {
 
-                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "ERROR - Ordering Cart", false, jsonResp.errors);
                                             callBack.end(jsonString);
                                             return;
                                         }
@@ -104,7 +104,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
 
                                         request(options, function (error, response, body) { //Add to Cart
                                             if (error) {
-                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION - Add Number to Cart", false, undefined);
                                                 logger.error('[DVP-Voxbone.CreateCart.AddToCart] - [%s] - [%s] - Error.', response, body, error);
                                                 callBack.end(jsonString);
                                                 return;
@@ -113,7 +113,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                 jsonResp = JSON.parse(body);
                                                 if (response.statusCode != 200 || jsonResp.status != "SUCCESS") {
 
-                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "ERROR -  - Add Number to Cart", false, jsonResp.errors);
                                                     callBack.end(jsonString);
                                                 }
 
@@ -132,7 +132,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
 
                                                 request(options, function (error, response, body) { //Checkout cart
                                                     if (error) {
-                                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION - Get DID Group Price", false, undefined);
                                                         logger.error('[DVP-Voxbone.CreateCart.didgroup.getPrice] - [%s] - [%s] - Error.', response, body, error);
                                                         callBack.end(jsonString);
                                                     } else {
@@ -140,7 +140,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                         jsonResp = JSON.parse(body);
                                                         if (response.statusCode != 200 || jsonResp.resultCount <= 0) {
 
-                                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
+                                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "ERROR - Get DID Group Price", false, body);
                                                             callBack.end(jsonString);
                                                             return;
                                                         }
@@ -165,7 +165,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
 
                                                         request(options, function (error, response, body) { //Checkout cart
                                                             if (error) {
-                                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION - Voxbone Funds", false, undefined);
                                                                 logger.error('[DVP-Voxbone.CreateCart.AddToCart.accountbalance] - [%s] - [%s] - Error.', response, body, error);
                                                                 callBack.end(jsonString);
                                                             } else {
@@ -173,7 +173,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                                 jsonResp = JSON.parse(body);
                                                                 if (response.statusCode != 200) {// || jsonResp.accountBalance.active === false
 
-                                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
+                                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "Error - Voxbone Funds", false, body);
                                                                     callBack.end(jsonString);
                                                                     return;
                                                                 }
@@ -210,7 +210,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
 
                                                                                             request(options, function (error, response, body) { //Checkout cart
                                                                                                 if (error) {
-                                                                                                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                                                                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION - Checkout Cart", false, undefined);
                                                                                                     logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart] - [%s] - [%s] - Error.', response, body, error);
                                                                                                     callBack.end(jsonString);
                                                                                                 } else {
@@ -218,7 +218,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                                                                     jsonResp = JSON.parse(body);
                                                                                                     if (response.statusCode != 200 || jsonResp.status != "SUCCESS") {
 
-                                                                                                        jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
+                                                                                                        jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "ERROR - Checkout Cart", false, body);
                                                                                                         callBack.end(jsonString);
                                                                                                         return;
                                                                                                     }
@@ -238,14 +238,14 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                                                                         };
                                                                                                         request(options, function (error, response, body) {
                                                                                                             if (error) {
-                                                                                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                                                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION - Validate New Number", false, undefined);
                                                                                                                 logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - [%s] - Error.', response, body, error);
                                                                                                                 callBack.end(jsonString);
                                                                                                             } else {
                                                                                                                 logger.info('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - - [%s]', response, body);
                                                                                                                 if (response.statusCode != 200) {
                                                                                                                     jsonResp = JSON.parse(body);
-                                                                                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                                                                                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "ERROR - Validate New Number", false, jsonResp.errors);
                                                                                                                     callBack.end(jsonString);
                                                                                                                     return;
                                                                                                                 }
