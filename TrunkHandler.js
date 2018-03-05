@@ -36,7 +36,7 @@ function TrunkSetup(tenant, company, phoneNumber, truckCode, callback) {// if no
             //callBack.end(error, body);
         } else {
 
-            logger.info('[DVP-Voxbone.CreateTrunk-SetLoadBalancer] - [%s]', response);
+            logger.info('[DVP-Voxbone.CreateTrunk-SetLoadBalancer] - [%s]', body);
             //jsonResp = JSON.parse(body);
             //if (!jsonResp.IsSuccess) {
                 //jsonString = messageFormatter.FormatMessage(new error(jsonResp), "EXCEPTION", false, response);
