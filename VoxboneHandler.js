@@ -330,20 +330,26 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                                                                                     } else {
                                                                                                                         trunkHandler.TrunkSetup(tenant, company, dids[0].e164, dids[0].trunkId, function (err, response, body) {
                                                                                                                             if (err || response.statusCode !== 200 || !body.IsSuccess || !body.Result) {
+                                                                                                                                console.log('1');
                                                                                                                                 jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
                                                                                                                                 callBack.end(jsonString);
                                                                                                                             } else {
+                                                                                                                                console.log('2');
                                                                                                                                 didReqHandler.SetTrunk(tenant, company, dids[0], body.Result.TrunkCode, function (err, isSuccess, msg) {
                                                                                                                                     if (err || !isSuccess) {
+                                                                                                                                        console.log('3');
                                                                                                                                         jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
                                                                                                                                         callBack.end(jsonString);
                                                                                                                                     } else {
+                                                                                                                                        console.log('4');
                                                                                                                                         trunkHandler.SetLimitToNumber(company, tenant, dids[0].e164, capacity, function(err, response, body){
                                                                                                                                             if(err || response.statusCode !== 200 || !body.IsSuccess || !body.Result){
+                                                                                                                                                console.log('5');
                                                                                                                                                 console.log('CALLING SetLimitToNumber - ERROR');
                                                                                                                                                 jsonString = messageFormatter.FormatMessage(undefined, "Set channel limit to number failed", false, undefined);
                                                                                                                                                 callBack.end(jsonString);
                                                                                                                                             }else{
+                                                                                                                                                console.log('6');
                                                                                                                                                 trunkHandler.CreateDefaultRuleInbound(company, tenant, dids[0].e164);
                                                                                                                                                 jsonString = messageFormatter.FormatMessage(undefined, msg, isSuccess, undefined);
                                                                                                                                                 callBack.end(jsonString);
