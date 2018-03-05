@@ -83,6 +83,8 @@ function SetLimitToNumber(company, tenant, phoneNumber, limit, callback) {
 
 function CreateDefaultRuleInbound(company, tenant, phoneNumber) {
 
+    console.log('CALLING CreateDefaultRuleInbound - URL');
+
     var data = {ANI:null, ANIRegExPattern:"ANY", CallRuleDescription:"Inbound Rule " + phoneNumber, Context:"ANY", DNIS:phoneNumber, Direction:"INBOUND", Enable:true, ObjCategory:"CALL", Priority:1, RegExPattern:"STARTWITH", TrunkNumber:null};
     var options = {
         method: 'POST',
@@ -98,6 +100,10 @@ function CreateDefaultRuleInbound(company, tenant, phoneNumber) {
     request(options, function (error, response, body) {
         if (error) {
             logger.error('[DVP-Voxbone.CreateDefaultRuleInbound] - [%s] - [%s] - Error.', response, body, error);
+        }
+        else
+        {
+            console.log('CALLING CreateDefaultRuleInbound - SUCCESS');
         }
     });
 }

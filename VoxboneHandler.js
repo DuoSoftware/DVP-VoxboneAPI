@@ -489,9 +489,11 @@ function ConfigureDid(apiKey, callback, didId, didEnabled, activeCapacity){
             'Authorization': apiKey
         }
     };
+    console.log('CALLING VOXBONE URL');
     request(options, function (error, response, body) {
         if (error) {
-            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            console.log('CALLING VOXBONE URL - ERROR');
+            jsonString = messageFormatter.FormatMessage(error, "EXCEPTION", false, undefined);
             logger.error('[DVP-Voxbone.ConfigureDid.ListDID] - [%s] - [%s] - Error.', response, body, error);
             callback.end(jsonString);
         } else {
@@ -520,8 +522,10 @@ function ConfigureDid(apiKey, callback, didId, didEnabled, activeCapacity){
                         'Authorization': apiKey
                     }
                 };
+                console.log('CALLING VOXBONE CONFIGURATION URL');
                 request(options, function (error, response, body) {
                     if (error) {
+                        console.log('CALLING VOXBONE CONFIGURATION URL - ERROR');
                         jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
                         logger.error('[DVP-Voxbone.ConfigureDid.ListPOP] - [%s] - [%s] - Error.', response, body, error);
                         callback.end(jsonString);
@@ -551,23 +555,33 @@ function ConfigureDid(apiKey, callback, didId, didEnabled, activeCapacity){
                             }
                         }
 
+                        console.log('CALLING GetDidRequest');
+
 
                         didReqHandler.GetDidRequest(didId, function(err, isSuccess, msg, didReq){
                             if(err || !isSuccess){
+                                console.log('CALLING GetDidRequest - ERROR');
                                 jsonString = messageFormatter.FormatMessage(err, msg, isSuccess, undefined);
                                 callback.end(jsonString);
                             }else{
+                                console.log('CALLING EnableCapacity');
                                 didReqHandler.EnableCapacity(didReq.Tenant, didReq.Company, didId, activeCapacity, didEnabled, function(err, isSuccess, msg){
                                     if(err || !isSuccess){
+                                        console.log('CALLING EnableCapacity - ERROR');
                                         jsonString = messageFormatter.FormatMessage(err, msg, isSuccess, undefined);
                                         callback.end(jsonString);
                                     }else{
+                                        console.log('CALLING CreateDefaultRuleInbound');
                                         trunkHandler.CreateDefaultRuleInbound(didReq.Company, didReq.Tenant, phoneNumber);
+                                        console.log('CALLING SetLimitToNumber');
                                         trunkHandler.SetLimitToNumber(didReq.Company, didReq.Tenant, phoneNumber, activeCapacity, function(err, response, body){
                                             if(err || response.statusCode !== 200 || !body.IsSuccess || !body.Result){
+                                                console.log('CALLING SetLimitToNumber - ERROR');
                                                 jsonString = messageFormatter.FormatMessage(undefined, "Set channel limit to number failed", false, undefined);
                                                 callback.end(jsonString);
                                             }else{
+
+                                                console.log('CALLING SetLimitToNumber - SUCCESS');
 
                                                 var didConfig = {
                                                     didIds : [didToConfig.didId],
@@ -596,12 +610,16 @@ function ConfigureDid(apiKey, callback, didId, didEnabled, activeCapacity){
                                                     body: JSON.stringify(didConfig)
                                                 };
 
+                                                console.log('CALLING VOXBONE configuration/configuration');
+
                                                 request(options, function (error, response, body) {
                                                     if (error) {
+                                                        console.log('CALLING VOXBONE configuration/configuration - ERROR');
                                                         jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
                                                         logger.error('[DVP-Voxbone.Did.configuration] - [%s] - [%s] - Error.', response, body, error);
                                                         callback.end(jsonString);
                                                     } else {
+                                                        console.log('CALLING VOXBONE configuration/configuration - SUCCESS');
                                                         logger.info('[DVP-Voxbone.Did.configuration] - [%s] - - [%s]', response, body);
                                                         jsonResp = JSON.parse(body);
                                                         if (response.statusCode != 200) {
@@ -627,6 +645,7 @@ function ConfigureDid(apiKey, callback, didId, didEnabled, activeCapacity){
                 });
 
             }else{
+                console.log('NO DID FOUND');
                 jsonString = messageFormatter.FormatMessage(undefined, "No DID Found", false, undefined);
                 callback.end(jsonString);
             }
