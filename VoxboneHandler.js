@@ -338,8 +338,18 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                                                                                                         jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
                                                                                                                                         callBack.end(jsonString);
                                                                                                                                     } else {
-                                                                                                                                        jsonString = messageFormatter.FormatMessage(undefined, msg, isSuccess, undefined);
-                                                                                                                                        callBack.end(jsonString);
+                                                                                                                                        trunkHandler.SetLimitToNumber(company, tenant, dids[0].e164, capacity, function(err, response, body){
+                                                                                                                                            if(err || response.statusCode !== 200 || !body.IsSuccess || !body.Result){
+                                                                                                                                                console.log('CALLING SetLimitToNumber - ERROR');
+                                                                                                                                                jsonString = messageFormatter.FormatMessage(undefined, "Set channel limit to number failed", false, undefined);
+                                                                                                                                                callBack.end(jsonString);
+                                                                                                                                            }else{
+                                                                                                                                                trunkHandler.CreateDefaultRuleInbound(company, tenant, dids[0].e164);
+                                                                                                                                                jsonString = messageFormatter.FormatMessage(undefined, msg, isSuccess, undefined);
+                                                                                                                                                callBack.end(jsonString);
+                                                                                                                                            }
+                                                                                                                                        });
+
                                                                                                                                     }
                                                                                                                                 });
                                                                                                                             }
