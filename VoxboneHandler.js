@@ -17,9 +17,8 @@ var trunkHandler = require('./TrunkHandler');
 var validator = require('validator');
 var util = require('util');
 var restClientHandler = require('./RestClient');
-var mongoose = require('mongoose');
 var Org = require('dvp-mongomodels/model/Organisation');
-var User = require('dvp-mongomodels/model/User');
+var UserAccount = require('dvp-mongomodels/model/UserAccount');
 
 var voxboneUrl = config.Services.voxboneUrl;
 
@@ -46,12 +45,13 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
 
     try {
 
-        User.findOne({tenant: tenant, company: company, username: req.user.iss}).select("-password").exec(function (err, rUser) {
+        UserAccount.findOne({tenant: tenant, company: company, user: req.user.iss}).populate('userref' , '-password').exec(function (err, rUser) {
             if (err) {
                 jsonString = messageFormatter.FormatMessage(err, "Error in User Search", false, undefined);
                 res.end(jsonString);
             } else {
                 if(rUser) {
+                    rUser = rUser.userref;
                     Org.findOne({tenant: tenant, id: company}).populate('ownerRef', '-password').exec(function (err, org) {
 
                         if (err) {
@@ -77,7 +77,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                 request(options, function (error, response, body) { // Create Cart
 
                                     if (error) {
-                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION - Ordering Cart", false, undefined);
                                         logger.error('[DVP-Voxbone.CreateCart] - [%s] - [%s] - Error.', response, body, error);
                                         callBack.end(jsonString);
                                     } else {
@@ -85,7 +85,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                         jsonResp = JSON.parse(body);
                                         if (response.statusCode != 200) {
 
-                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "ERROR - Ordering Cart", false, jsonResp.errors);
                                             callBack.end(jsonString);
                                             return;
                                         }
@@ -104,7 +104,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
 
                                         request(options, function (error, response, body) { //Add to Cart
                                             if (error) {
-                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION - Add Number to Cart", false, undefined);
                                                 logger.error('[DVP-Voxbone.CreateCart.AddToCart] - [%s] - [%s] - Error.', response, body, error);
                                                 callBack.end(jsonString);
                                                 return;
@@ -113,7 +113,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                 jsonResp = JSON.parse(body);
                                                 if (response.statusCode != 200 || jsonResp.status != "SUCCESS") {
 
-                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "ERROR -  - Add Number to Cart", false, jsonResp.errors);
                                                     callBack.end(jsonString);
                                                 }
 
@@ -132,7 +132,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
 
                                                 request(options, function (error, response, body) { //Checkout cart
                                                     if (error) {
-                                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION - Get DID Group Price", false, undefined);
                                                         logger.error('[DVP-Voxbone.CreateCart.didgroup.getPrice] - [%s] - [%s] - Error.', response, body, error);
                                                         callBack.end(jsonString);
                                                     } else {
@@ -140,7 +140,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                         jsonResp = JSON.parse(body);
                                                         if (response.statusCode != 200 || jsonResp.resultCount <= 0) {
 
-                                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
+                                                            jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "ERROR - Get DID Group Price", false, body);
                                                             callBack.end(jsonString);
                                                             return;
                                                         }
@@ -165,7 +165,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
 
                                                         request(options, function (error, response, body) { //Checkout cart
                                                             if (error) {
-                                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION - Voxbone Funds", false, undefined);
                                                                 logger.error('[DVP-Voxbone.CreateCart.AddToCart.accountbalance] - [%s] - [%s] - Error.', response, body, error);
                                                                 callBack.end(jsonString);
                                                             } else {
@@ -173,7 +173,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                                 jsonResp = JSON.parse(body);
                                                                 if (response.statusCode != 200) {// || jsonResp.accountBalance.active === false
 
-                                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
+                                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "Error - Voxbone Funds", false, body);
                                                                     callBack.end(jsonString);
                                                                     return;
                                                                 }
@@ -210,7 +210,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
 
                                                                                             request(options, function (error, response, body) { //Checkout cart
                                                                                                 if (error) {
-                                                                                                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                                                                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION - Checkout Cart", false, undefined);
                                                                                                     logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart] - [%s] - [%s] - Error.', response, body, error);
                                                                                                     callBack.end(jsonString);
                                                                                                 } else {
@@ -218,7 +218,7 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                                                                     jsonResp = JSON.parse(body);
                                                                                                     if (response.statusCode != 200 || jsonResp.status != "SUCCESS") {
 
-                                                                                                        jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, body);
+                                                                                                        jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "ERROR - Checkout Cart", false, body);
                                                                                                         callBack.end(jsonString);
                                                                                                         return;
                                                                                                     }
@@ -238,14 +238,14 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                                                                         };
                                                                                                         request(options, function (error, response, body) {
                                                                                                             if (error) {
-                                                                                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                                                                                                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION - Validate New Number", false, undefined);
                                                                                                                 logger.error('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - [%s] - Error.', response, body, error);
                                                                                                                 callBack.end(jsonString);
                                                                                                             } else {
                                                                                                                 logger.info('[DVP-Voxbone.CreateCart.AddToCart.CheckoutCart.ListDID] - [%s] - - [%s]', response, body);
                                                                                                                 if (response.statusCode != 200) {
                                                                                                                     jsonResp = JSON.parse(body);
-                                                                                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "EXCEPTION", false, jsonResp.errors);
+                                                                                                                    jsonString = messageFormatter.FormatMessage(new Error(response.statusCode), "ERROR - Validate New Number", false, jsonResp.errors);
                                                                                                                     callBack.end(jsonString);
                                                                                                                     return;
                                                                                                                 }
@@ -328,18 +328,34 @@ function OrderDids(req, apiKey, callBack, customerReference, description, didGro
                                                                                                                         jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
                                                                                                                         callBack.end(jsonString);
                                                                                                                     } else {
-                                                                                                                        trunkHandler.TrunkSetup(tenant, company, dids[0].e164, function (err, response, body) {
+                                                                                                                        trunkHandler.TrunkSetup(tenant, company, dids[0].e164, dids[0].trunkId, function (err, response, body) {
                                                                                                                             if (err || response.statusCode !== 200 || !body.IsSuccess || !body.Result) {
+                                                                                                                                console.log('1');
                                                                                                                                 jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
                                                                                                                                 callBack.end(jsonString);
                                                                                                                             } else {
+                                                                                                                                console.log('2');
                                                                                                                                 didReqHandler.SetTrunk(tenant, company, dids[0], body.Result.TrunkCode, function (err, isSuccess, msg) {
                                                                                                                                     if (err || !isSuccess) {
+                                                                                                                                        console.log('3');
                                                                                                                                         jsonString = messageFormatter.FormatMessage(undefined, lastMessage, lastStatus, undefined);
                                                                                                                                         callBack.end(jsonString);
                                                                                                                                     } else {
-                                                                                                                                        jsonString = messageFormatter.FormatMessage(undefined, msg, isSuccess, undefined);
-                                                                                                                                        callBack.end(jsonString);
+                                                                                                                                        console.log('4');
+                                                                                                                                        trunkHandler.SetLimitToNumber(company, tenant, dids[0].e164, capacity, function(err, response, body){
+                                                                                                                                            if(err || response.statusCode !== 200 || !body.IsSuccess || !body.Result){
+                                                                                                                                                console.log('5');
+                                                                                                                                                console.log('CALLING SetLimitToNumber - ERROR');
+                                                                                                                                                jsonString = messageFormatter.FormatMessage(undefined, "Set channel limit to number failed", false, undefined);
+                                                                                                                                                callBack.end(jsonString);
+                                                                                                                                            }else{
+                                                                                                                                                console.log('6');
+                                                                                                                                                trunkHandler.CreateDefaultRuleInbound(company, tenant, dids[0].e164);
+                                                                                                                                                jsonString = messageFormatter.FormatMessage(undefined, msg, isSuccess, undefined);
+                                                                                                                                                callBack.end(jsonString);
+                                                                                                                                            }
+                                                                                                                                        });
+
                                                                                                                                     }
                                                                                                                                 });
                                                                                                                             }
@@ -489,9 +505,11 @@ function ConfigureDid(apiKey, callback, didId, didEnabled, activeCapacity){
             'Authorization': apiKey
         }
     };
+    console.log('CALLING VOXBONE URL');
     request(options, function (error, response, body) {
         if (error) {
-            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            console.log('CALLING VOXBONE URL - ERROR');
+            jsonString = messageFormatter.FormatMessage(error, "EXCEPTION", false, undefined);
             logger.error('[DVP-Voxbone.ConfigureDid.ListDID] - [%s] - [%s] - Error.', response, body, error);
             callback.end(jsonString);
         } else {
@@ -520,8 +538,10 @@ function ConfigureDid(apiKey, callback, didId, didEnabled, activeCapacity){
                         'Authorization': apiKey
                     }
                 };
+                console.log('CALLING VOXBONE CONFIGURATION URL');
                 request(options, function (error, response, body) {
                     if (error) {
+                        console.log('CALLING VOXBONE CONFIGURATION URL - ERROR');
                         jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
                         logger.error('[DVP-Voxbone.ConfigureDid.ListPOP] - [%s] - [%s] - Error.', response, body, error);
                         callback.end(jsonString);
@@ -551,22 +571,33 @@ function ConfigureDid(apiKey, callback, didId, didEnabled, activeCapacity){
                             }
                         }
 
+                        console.log('CALLING GetDidRequest');
+
 
                         didReqHandler.GetDidRequest(didId, function(err, isSuccess, msg, didReq){
                             if(err || !isSuccess){
+                                console.log('CALLING GetDidRequest - ERROR');
                                 jsonString = messageFormatter.FormatMessage(err, msg, isSuccess, undefined);
                                 callback.end(jsonString);
                             }else{
+                                console.log('CALLING EnableCapacity');
                                 didReqHandler.EnableCapacity(didReq.Tenant, didReq.Company, didId, activeCapacity, didEnabled, function(err, isSuccess, msg){
                                     if(err || !isSuccess){
+                                        console.log('CALLING EnableCapacity - ERROR');
                                         jsonString = messageFormatter.FormatMessage(err, msg, isSuccess, undefined);
                                         callback.end(jsonString);
                                     }else{
+                                        console.log('CALLING CreateDefaultRuleInbound');
+                                        trunkHandler.CreateDefaultRuleInbound(didReq.Company, didReq.Tenant, phoneNumber);
+                                        console.log('CALLING SetLimitToNumber');
                                         trunkHandler.SetLimitToNumber(didReq.Company, didReq.Tenant, phoneNumber, activeCapacity, function(err, response, body){
                                             if(err || response.statusCode !== 200 || !body.IsSuccess || !body.Result){
+                                                console.log('CALLING SetLimitToNumber - ERROR');
                                                 jsonString = messageFormatter.FormatMessage(undefined, "Set channel limit to number failed", false, undefined);
                                                 callback.end(jsonString);
                                             }else{
+
+                                                console.log('CALLING SetLimitToNumber - SUCCESS');
 
                                                 var didConfig = {
                                                     didIds : [didToConfig.didId],
@@ -595,12 +626,16 @@ function ConfigureDid(apiKey, callback, didId, didEnabled, activeCapacity){
                                                     body: JSON.stringify(didConfig)
                                                 };
 
+                                                console.log('CALLING VOXBONE configuration/configuration');
+
                                                 request(options, function (error, response, body) {
                                                     if (error) {
+                                                        console.log('CALLING VOXBONE configuration/configuration - ERROR');
                                                         jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
                                                         logger.error('[DVP-Voxbone.Did.configuration] - [%s] - [%s] - Error.', response, body, error);
                                                         callback.end(jsonString);
                                                     } else {
+                                                        console.log('CALLING VOXBONE configuration/configuration - SUCCESS');
                                                         logger.info('[DVP-Voxbone.Did.configuration] - [%s] - - [%s]', response, body);
                                                         jsonResp = JSON.parse(body);
                                                         if (response.statusCode != 200) {
@@ -626,6 +661,7 @@ function ConfigureDid(apiKey, callback, didId, didEnabled, activeCapacity){
                 });
 
             }else{
+                console.log('NO DID FOUND');
                 jsonString = messageFormatter.FormatMessage(undefined, "No DID Found", false, undefined);
                 callback.end(jsonString);
             }

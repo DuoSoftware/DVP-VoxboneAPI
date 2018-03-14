@@ -17,25 +17,100 @@ var didReqHandler = require('./DidRequestHandler');
 
 
 
-var mongoip=config.Mongo.ip;
-var mongoport=config.Mongo.port;
-var mongodb=config.Mongo.dbname;
-var mongouser=config.Mongo.user;
-var mongopass = config.Mongo.password;
+// var mongoip=config.Mongo.ip;
+// var mongoport=config.Mongo.port;
+// var mongodb=config.Mongo.dbname;
+// var mongouser=config.Mongo.user;
+// var mongopass = config.Mongo.password;
 
 
 var port = config.Host.port || 3000;
 var host = config.Host.vdomain || 'localhost';
 
 
-var mongoose = require('mongoose');
+// var mongoose = require('mongoose');
+// var util = require('util');
+// var connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip,mongoport,mongodb)
+// mongoose.connect(connectionstring);
+//
+// mongoose.connection.once('open', function() {
+//     console.log("Connected to db");
+// });
+
+
 var util = require('util');
-var connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip,mongoport,mongodb)
-mongoose.connect(connectionstring);
+var mongoip=config.Mongo.ip;
+var mongoport=config.Mongo.port;
+var mongodb=config.Mongo.dbname;
+var mongouser=config.Mongo.user;
+var mongopass = config.Mongo.password;
+var mongoreplicaset= config.Mongo.replicaset;
+
+var mongoose = require('mongoose');
+var connectionstring = '';
+mongoip = mongoip.split(',');
+
+if(util.isArray(mongoip)){
+    if(mongoip.length > 1){
+        mongoip.forEach(function(item){
+            connectionstring += util.format('%s:%d,',item,mongoport)
+        });
+
+        connectionstring = connectionstring.substring(0, connectionstring.length - 1);
+        connectionstring = util.format('mongodb://%s:%s@%s/%s',mongouser,mongopass,connectionstring,mongodb);
+
+        if(mongoreplicaset){
+            connectionstring = util.format('%s?replicaSet=%s',connectionstring,mongoreplicaset) ;
+        }
+    }
+    else
+    {
+        connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip[0],mongoport,mongodb);
+    }
+}else{
+
+    connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip,mongoport,mongodb);
+}
+
+console.log(connectionstring);
+mongoose.connect(connectionstring,{server:{auto_reconnect:true}});
+
+
+mongoose.connection.on('error', function (err) {
+    console.error( new Error(err));
+    mongoose.disconnect();
+
+});
+
+mongoose.connection.on('opening', function() {
+    console.log("reconnecting... %d", mongoose.connection.readyState);
+});
+
+
+mongoose.connection.on('disconnected', function() {
+    console.error( new Error('Could not connect to database'));
+    mongoose.connect(connectionstring,{server:{auto_reconnect:true}});
+});
 
 mongoose.connection.once('open', function() {
     console.log("Connected to db");
+
 });
+
+
+mongoose.connection.on('reconnected', function () {
+    console.log('MongoDB reconnected!');
+});
+
+
+
+process.on('SIGINT', function() {
+    mongoose.connection.close(function () {
+        console.log('Mongoose default connection disconnected through app termination');
+        process.exit(0);
+    });
+});
+
 
 //-------------------------  Restify Server ------------------------- \\
 var RestServer = restify.createServer({
@@ -67,26 +142,26 @@ RestServer.listen(port, function () {
 });
 
 
-RestServer.post('/DVP/API/' + version + '/voxbone/trunk/trunksetup', authorization({
-    resource: "voxbone",
-    action: "write"
-}), function (req, res, next) {
-    try {
-        logger.info('[DVP-voxbone.TrunkSetup] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.body));
-
-        var apiKey = config.Services.apiKey;//req.headers.authorization
-
-        var cmp = req.body;
-        trunkHandler.TrunkSetup(apiKey, res, true, cmp.FaxType, cmp.IpUrl, cmp.TrunkCode, cmp.TrunkName, cmp.LbId, cmp.OperatorCode, cmp.OperatorName);
-
-    }
-    catch (ex) {
-        logger.error('[DVP-voxbone.TrunkSetup] - [HTTP]  - Exception occurred -  Data - %s ', JSON.stringify(req.body), ex);
-        var jsonString = messageFormatter.FormatMessage(ex, "EXCEPTION", false, undefined);
-        res.end(jsonString);
-    }
-    return next();
-});
+// RestServer.post('/DVP/API/' + version + '/voxbone/trunk/trunksetup', authorization({
+//     resource: "voxbone",
+//     action: "write"
+// }), function (req, res, next) {
+//     try {
+//         logger.info('[DVP-voxbone.TrunkSetup] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.body));
+//
+//         var apiKey = config.Services.apiKey;//req.headers.authorization
+//
+//         var cmp = req.body;
+//         trunkHandler.TrunkSetup(apiKey, res, true, cmp.FaxType, cmp.IpUrl, cmp.TrunkCode, cmp.TrunkName, cmp.LbId, cmp.OperatorCode, cmp.OperatorName);
+//
+//     }
+//     catch (ex) {
+//         logger.error('[DVP-voxbone.TrunkSetup] - [HTTP]  - Exception occurred -  Data - %s ', JSON.stringify(req.body), ex);
+//         var jsonString = messageFormatter.FormatMessage(ex, "EXCEPTION", false, undefined);
+//         res.end(jsonString);
+//     }
+//     return next();
+// });
 
 RestServer.post('/DVP/API/' + version + '/voxbone/trunk/:trunkid/limitnumber', authorization({
     resource: "voxbone",
@@ -314,7 +389,7 @@ RestServer.put('/DVP/API/' + version + '/voxbone/order/ConfigDid', authorization
         logger.info('[DVP-voxbone.ConfigDid] - [HTTP]  - Request received -  Data - %s ', JSON.stringify(req.body));
 
         var apiKey = config.Services.apiKey;
-        var vox = req.params;
+        var vox = req.body;
 
         voxboneHandler.ConfigureDid(apiKey, res, vox.DidId, vox.DidEnabled, vox.CapacityEnabled);
 
@@ -351,7 +426,7 @@ RestServer.get('/DVP/API/' + version + '/voxbone/order/DidRequest', authorizatio
     return next();
 });
 
-RestServer.get('/DVP/API/' + version + '/voxbone/order/DidRequest/:status', authorization({
+RestServer.get('/DVP/API/' + version + '/voxbone/order/DidRequest/status/:status', authorization({
     resource: "voxbone",
     action: "write"
 }), function (req, res, next) {
@@ -373,3 +448,29 @@ RestServer.get('/DVP/API/' + version + '/voxbone/order/DidRequest/:status', auth
     }
     return next();
 });
+
+RestServer.get('/DVP/API/' + version + '/voxbone/order/DidRequest/counts', authorization({
+    resource: "voxbone",
+    action: "read"
+}), function (req, res, next) {
+    try {
+        logger.info('[DVP-voxbone.order.GetAllDidRequestCounts] - [HTTP]  - Request received');
+
+
+        didReqHandler.GetAllDidRequestCounts(function(err, isSuccess, msg, obj){
+            var jsonString = messageFormatter.FormatMessage(err, msg, isSuccess, obj);
+            res.end(jsonString);
+        });
+
+    }
+    catch (ex) {
+
+        logger.error('[DVP-voxbone.order.GetAllDidRequestCounts] - [HTTP]  - Exception occurred:: %s', ex);
+        var jsonString = messageFormatter.FormatMessage(ex, "EXCEPTION", false, undefined);
+        res.end(jsonString);
+    }
+    return next();
+});
+
+
+
