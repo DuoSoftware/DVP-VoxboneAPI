@@ -7,7 +7,7 @@
 
 #EXPOSE 8832
 
-FROM node:5.10.0
+FROM node:9.9.0
 ARG VERSION_TAG
 RUN git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-VoxboneAPI.git /usr/local/src/voxboneapi
 RUN cd /usr/local/src/voxboneapi;
